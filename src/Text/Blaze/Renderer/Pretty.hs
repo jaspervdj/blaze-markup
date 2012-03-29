@@ -1,20 +1,21 @@
 -- | A renderer that produces pretty HTML, mostly meant for debugging purposes.
 --
 module Text.Blaze.Renderer.Pretty
-    ( renderHtml
+    ( renderMarkup
+    , renderHtml
     ) where
 
 import Text.Blaze.Internal
 import Text.Blaze.Renderer.String (fromChoiceString)
 
--- | Render some 'Html' to an appending 'String'.
+-- | Render some 'Markup' to an appending 'String'.
 --
-renderString :: Html    -- ^ HTML to render
+renderString :: Markup    -- ^ Markup to render
              -> String  -- ^ String to append
              -> String  -- ^ Resulting String
 renderString = go 0 id
   where
-    go :: Int -> (String -> String) -> HtmlM b -> String -> String
+    go :: Int -> (String -> String) -> MarkupM b -> String -> String
     go i attrs (Parent _ open close content) =
         ind i . getString open . attrs . (">\n" ++) . go (inc i) id content
               . ind i . getString close .  ('\n' :)
@@ -36,9 +37,15 @@ renderString = go 0 id
     ind i = (replicate i ' ' ++)
 {-# INLINE renderString #-}
 
--- | Render HTML to a lazy 'String'. The result is prettified.
+-- | Render markup to a lazy 'String'. The result is prettified.
 --
-renderHtml :: Html    -- ^ HTML to render
-           -> String  -- ^ Resulting 'String'.
-renderHtml html = renderString html ""
+renderMarkup, renderHtml :: Markup    -- ^ Markup to render
+                         -> String  -- ^ Resulting 'String'.
+renderMarkup html = renderString html ""
+{-# INLINE renderMarkup #-}
+
+renderHtml = renderMarkup
+{-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
+
+

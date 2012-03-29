@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Blaze.Renderer.String
     ( fromChoiceString
+    , renderMarkup
     , renderHtml
     ) where
 
@@ -15,19 +16,19 @@ import qualified Data.ByteString as S
 
 import Text.Blaze.Internal
 
--- | Escape HTML entities in a string
+-- | Escape predefined XML entities in a string
 --
-escapeHtmlEntities :: String  -- ^ String to escape
+escapeMarkupEntities :: String  -- ^ String to escape
                    -> String  -- ^ String to append
                    -> String  -- ^ Resulting string
-escapeHtmlEntities []     k = k
-escapeHtmlEntities (c:cs) k = case c of
-    '<'  -> '&' : 'l' : 't' : ';'             : escapeHtmlEntities cs k
-    '>'  -> '&' : 'g' : 't' : ';'             : escapeHtmlEntities cs k
-    '&'  -> '&' : 'a' : 'm' : 'p' : ';'       : escapeHtmlEntities cs k
-    '"'  -> '&' : 'q' : 'u' : 'o' : 't' : ';' : escapeHtmlEntities cs k
-    '\'' -> '&' : '#' : '3' : '9' : ';'       : escapeHtmlEntities cs k
-    x    -> x                                 : escapeHtmlEntities cs k
+escapeMarkupEntities []     k = k
+escapeMarkupEntities (c:cs) k = case c of
+    '<'  -> '&' : 'l' : 't' : ';'             : escapeMarkupEntities cs k
+    '>'  -> '&' : 'g' : 't' : ';'             : escapeMarkupEntities cs k
+    '&'  -> '&' : 'a' : 'm' : 'p' : ';'       : escapeMarkupEntities cs k
+    '"'  -> '&' : 'q' : 'u' : 'o' : 't' : ';' : escapeMarkupEntities cs k
+    '\'' -> '&' : '#' : '3' : '9' : ';'       : escapeMarkupEntities cs k
+    x    -> x                                 : escapeMarkupEntities cs k
 
 -- | Render a 'ChoiceString'.
 --
@@ -35,8 +36,8 @@ fromChoiceString :: ChoiceString  -- ^ String to render
                  -> String        -- ^ String to append
                  -> String        -- ^ Resulting string
 fromChoiceString (Static s)     = getString s
-fromChoiceString (String s)     = escapeHtmlEntities s
-fromChoiceString (Text s)       = escapeHtmlEntities $ T.unpack s
+fromChoiceString (String s)     = escapeMarkupEntities s
+fromChoiceString (Text s)       = escapeMarkupEntities $ T.unpack s
 fromChoiceString (ByteString s) = (SBC.unpack s ++)
 fromChoiceString (PreEscaped x) = case x of
     String s -> (s ++)
@@ -53,14 +54,14 @@ fromChoiceString (AppendChoiceString x y) =
 fromChoiceString EmptyChoiceString = id
 {-# INLINE fromChoiceString #-}
 
--- | Render some 'Html' to an appending 'String'.
+-- | Render some 'Markup' to an appending 'String'.
 --
-renderString :: Html    -- ^ HTML to render
+renderString :: Markup    -- ^ Markup to render
              -> String  -- ^ String to append
              -> String  -- ^ Resulting String
 renderString = go id 
   where
-    go :: (String -> String) -> HtmlM b -> String -> String
+    go :: (String -> String) -> MarkupM b -> String -> String
     go attrs (Parent _ open close content) =
         getString open . attrs . ('>' :) . go id content . getString close
     go attrs (Leaf _ begin end) = getString begin . attrs . getString end
@@ -74,9 +75,14 @@ renderString = go id
     {-# NOINLINE go #-}
 {-# INLINE renderString #-}
 
--- | Render HTML to a lazy 'String'.
+-- | Render markup to a lazy 'String'.
 --
-renderHtml :: Html    -- ^ HTML to render
-           -> String  -- ^ Resulting 'String'
-renderHtml html = renderString html ""
+renderMarkup, renderHtml :: Markup    -- ^ HTML to render
+                         -> String  -- ^ Resulting 'String'
+renderMarkup html = renderString html ""
+{-# INLINE renderMarkup #-}
+
+renderHtml = renderMarkup
+{-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
+

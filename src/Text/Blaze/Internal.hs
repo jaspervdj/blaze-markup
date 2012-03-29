@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving, Rank2Types,
              FlexibleInstances, ExistentialQuantification, DeriveDataTypeable #-}
--- | The BlazeHtml core, consisting of functions that offer the power to
--- generate custom HTML elements. It also offers user-centric functions, which
+-- | The BlazeMarkup core, consisting of functions that offer the power to
+-- generate custom markup elements. It also offers user-centric functions, which
 -- are exposed through 'Text.Blaze'.
 --
 -- While this module is exported, usage of it is not recommended, unless you
@@ -12,8 +12,8 @@ module Text.Blaze.Internal
       -- * Important types.
       ChoiceString (..)
     , StaticString (..)
-    , HtmlM (..)
-    , Html
+    , MarkupM (..)
+    , Markup
     , Tag
     , Attribute
     , AttributeValue
@@ -113,31 +113,31 @@ instance IsString ChoiceString where
     fromString = String
     {-# INLINE fromString #-}
 
--- | The core HTML datatype.
+-- | The core Markup datatype.
 --
-data HtmlM a
+data MarkupM a
     -- | Tag, open tag, end tag, content
-    = forall b. Parent StaticString StaticString StaticString (HtmlM b)
+    = forall b. Parent StaticString StaticString StaticString (MarkupM b)
     -- | Tag, open tag, end tag
     | Leaf StaticString StaticString StaticString
     -- | HTML content
     | Content ChoiceString
     -- | Concatenation of two HTML pieces
-    | forall b c. Append (HtmlM b) (HtmlM c)
+    | forall b c. Append (MarkupM b) (MarkupM c)
     -- | Add an attribute to the inner HTML. Raw key, key, value, HTML to
     -- receive the attribute.
-    | AddAttribute StaticString StaticString ChoiceString (HtmlM a)
+    | AddAttribute StaticString StaticString ChoiceString (MarkupM a)
     -- | Add a custom attribute to the inner HTML.
-    | AddCustomAttribute ChoiceString ChoiceString ChoiceString (HtmlM a)
+    | AddCustomAttribute ChoiceString ChoiceString ChoiceString (MarkupM a)
     -- | Empty HTML.
     | Empty
     deriving (Typeable)
 
--- | Simplification of the 'HtmlM' datatype.
+-- | Simplification of the 'MarkupM' datatype.
 --
-type Html = HtmlM ()
+type Markup = MarkupM ()
 
-instance Monoid a => Monoid (HtmlM a) where
+instance Monoid a => Monoid (MarkupM a) where
     mempty = Empty
     {-# INLINE mempty #-}
     mappend x y = Append x y
@@ -145,32 +145,32 @@ instance Monoid a => Monoid (HtmlM a) where
     mconcat = foldr Append Empty
     {-# INLINE mconcat #-}
 
-instance Functor HtmlM where
+instance Functor MarkupM where
     -- Safe because it does not contain a value anyway
     fmap _ = unsafeCoerce
 
-instance Monad HtmlM where
+instance Monad MarkupM where
     return _ = Empty
     {-# INLINE return #-}
     (>>) = Append
     {-# INLINE (>>) #-}
     h1 >>= f = h1 >> f
-        (error "Text.Blaze.Internal.HtmlM: invalid use of monadic bind")
+        (error "Text.Blaze.Internal.MarkupM: invalid use of monadic bind")
     {-# INLINE (>>=) #-}
 
-instance IsString (HtmlM a) where
+instance IsString (MarkupM a) where
     fromString = Content . fromString
     {-# INLINE fromString #-}
 
 -- | Type for an HTML tag. This can be seen as an internal string type used by
--- BlazeHtml.
+-- BlazeMarkup.
 --
 newtype Tag = Tag { unTag :: StaticString }
     deriving (IsString)
 
 -- | Type for an attribute.
 --
-newtype Attribute = Attribute (forall a. HtmlM a -> HtmlM a)
+newtype Attribute = Attribute (forall a. MarkupM a -> MarkupM a)
 
 instance Monoid Attribute where
     mempty                            = Attribute id
@@ -198,8 +198,8 @@ attribute rawKey key value = Attribute $
 --
 -- > <p data-foo="bar">Hello.</p>
 --
--- We support this in BlazeHtml using this funcion. The above fragment could
--- be described using BlazeHtml with:
+-- We support this in BlazeMarkup using this funcion. The above fragment could
+-- be described using BlazeMarkup with:
 --
 -- > p ! dataAttribute "foo" "bar" $ "Hello."
 --
@@ -235,44 +235,41 @@ customAttribute tag value = Attribute $ AddCustomAttribute
 -- | Render text. Functions like these can be used to supply content in HTML.
 --
 text :: Text  -- ^ Text to render.
-     -> Html  -- ^ Resulting HTML fragment.
+     -> Markup  -- ^ Resulting HTML fragment.
 text = Content . Text
-{-# DEPRECATED text "Use Blaze.Html.toHtml" #-}
 {-# INLINE text #-}
 
 -- | Render text without escaping.
 --
 preEscapedText :: Text  -- ^ Text to insert
-               -> Html  -- ^ Resulting HTML fragment
+               -> Markup  -- ^ Resulting HTML fragment
 preEscapedText = Content . PreEscaped . Text
 {-# INLINE preEscapedText #-}
 
 -- | A variant of 'text' for lazy 'LT.Text'.
 --
 lazyText :: LT.Text  -- ^ Text to insert
-         -> Html     -- ^ Resulting HTML fragment
+         -> Markup     -- ^ Resulting HTML fragment
 lazyText = mconcat . map text . LT.toChunks
-{-# DEPRECATED lazyText "Use Blaze.Html.toHtml" #-}
 {-# INLINE lazyText #-}
 
 -- | A variant of 'preEscapedText' for lazy 'LT.Text'
 --
 preEscapedLazyText :: LT.Text  -- ^ Text to insert
-                   -> Html     -- ^ Resulting HTML fragment
+                   -> Markup     -- ^ Resulting HTML fragment
 preEscapedLazyText = mconcat . map preEscapedText . LT.toChunks
 
 -- | Create an HTML snippet from a 'String'.
 --
 string :: String  -- ^ String to insert.
-       -> Html    -- ^ Resulting HTML fragment.
+       -> Markup    -- ^ Resulting HTML fragment.
 string = Content . String
-{-# DEPRECATED string "Use Blaze.Html.toHtml" #-}
 {-# INLINE string #-}
 
 -- | Create an HTML snippet from a 'String' without escaping
 --
 preEscapedString :: String  -- ^ String to insert.
-                 -> Html    -- ^ Resulting HTML fragment.
+                 -> Markup    -- ^ Resulting HTML fragment.
 preEscapedString = Content . PreEscaped . String
 {-# INLINE preEscapedString #-}
 
@@ -284,7 +281,7 @@ preEscapedString = Content . PreEscaped . String
 --   done).
 --
 unsafeByteString :: ByteString  -- ^ Value to insert.
-                 -> Html        -- ^ Resulting HTML fragment.
+                 -> Markup        -- ^ Resulting HTML fragment.
 unsafeByteString = Content . ByteString
 {-# INLINE unsafeByteString #-}
 
@@ -292,7 +289,7 @@ unsafeByteString = Content . ByteString
 -- is an unsafe operation.
 --
 unsafeLazyByteString :: BL.ByteString  -- ^ Value to insert
-                     -> Html           -- ^ Resulting HTML fragment
+                     -> Markup           -- ^ Resulting HTML fragment
 unsafeLazyByteString = mconcat . map unsafeByteString . BL.toChunks
 {-# INLINE unsafeLazyByteString #-}
 
@@ -313,7 +310,6 @@ stringTag = Tag . fromString
 textValue :: Text            -- ^ The actual value.
           -> AttributeValue  -- ^ Resulting attribute value.
 textValue = AttributeValue . Text
-{-# DEPRECATED textValue "Use Blaze.Html.toValue" #-}
 {-# INLINE textValue #-}
 
 -- | Render an attribute value from 'Text' without escaping.
@@ -328,7 +324,6 @@ preEscapedTextValue = AttributeValue . PreEscaped . Text
 lazyTextValue :: LT.Text         -- ^ The actual value
               -> AttributeValue  -- ^ Resulting attribute value
 lazyTextValue = mconcat . map textValue . LT.toChunks
-{-# DEPRECATED lazyTextValue "Use Blaze.Html.toValue" #-}
 {-# INLINE lazyTextValue #-}
 
 -- | A variant of 'preEscapedTextValue' for lazy 'LT.Text'
@@ -342,7 +337,6 @@ preEscapedLazyTextValue = mconcat . map preEscapedTextValue . LT.toChunks
 --
 stringValue :: String -> AttributeValue
 stringValue = AttributeValue . String
-{-# DEPRECATED stringValue "Use Blaze.Html.toValue" #-}
 {-# INLINE stringValue #-}
 
 -- | Create an attribute value from a 'String' without escaping.
@@ -392,11 +386,11 @@ class Attributable h where
     --
     (!) :: h -> Attribute -> h
 
-instance Attributable (HtmlM a) where
+instance Attributable (MarkupM a) where
     h ! (Attribute f) = f h
     {-# INLINE (!) #-}
 
-instance Attributable (HtmlM a -> HtmlM b) where
+instance Attributable (MarkupM a -> MarkupM b) where
     h ! f = (! f) . h
     {-# INLINE (!) #-}
 
@@ -409,7 +403,7 @@ instance Attributable (HtmlM a -> HtmlM b) where
 -- This function is applied automatically when using the @style@ or @script@
 -- combinators.
 --
-external :: HtmlM a -> HtmlM a
+external :: MarkupM a -> MarkupM a
 external (Content x) = Content $ External x
 external (Append x y) = Append (external x) (external y)
 external (Parent x y z i) = Parent x y z $ external i

@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
--- | BlazeHtml is an HTML combinator library. It provides a way to embed HTML in
--- Haskell in an efficient and convenient way, with a light-weight syntax.
+-- | BlazeMarkup is a markup combinator library. It provides a way to embed markup languages
+-- like HTML and SVG in Haskell in an efficient and convenient way, with a light-weight syntax.
 --
--- To use the library, one needs to import a set of HTML combinators. For
--- example, you can use HTML 4 Strict.
+-- To use the library, one needs to import a set of combinators. For
+-- example, you can use HTML 4 Strict from BlazeHtml package.
 --
 -- > {-# LANGUAGE OverloadedStrings #-}
 -- > import Prelude hiding (head, id, div)
@@ -13,28 +13,28 @@
 -- To render the page later on, you need a so called Renderer. The recommended
 -- renderer is an UTF-8 renderer which produces a lazy bytestring.
 --
--- > import Text.Blaze.Renderer.Utf8 (renderHtml)
+-- > import Text.Blaze.Renderer.Utf8 (renderMarkup)
 --
 -- Now, you can describe pages using the imported combinators.
 --
--- > page1 :: Html
+-- > page1 :: Markup
 -- > page1 = html $ do
 -- >     head $ do
 -- >         title "Introduction page."
 -- >         link ! rel "stylesheet" ! type_ "text/css" ! href "screen.css"
 -- >     body $ do
 -- >         div ! id "header" $ "Syntax"
--- >         p "This is an example of BlazeHtml syntax."
--- >         ul $ mapM_ (li . toHtml . show) [1, 2, 3]
+-- >         p "This is an example of BlazeMarkup syntax."
+-- >         ul $ mapM_ (li . toMarkup . show) [1, 2, 3]
 --
 -- The resulting HTML can now be extracted using:
 --
--- > renderHtml page1
+-- > renderMarkup page1
 --
 module Text.Blaze
     (
       -- * Important types.
-      Html
+      Markup
     , Tag
     , Attribute
     , AttributeValue
@@ -44,12 +44,9 @@ module Text.Blaze
     , customAttribute
 
       -- * Converting values to HTML.
-    , ToHtml (..)
-    , text
+    , ToMarkup (..)
     , preEscapedText
-    , lazyText
     , preEscapedLazyText
-    , string
     , preEscapedString
     , unsafeByteString
     , unsafeLazyByteString
@@ -60,11 +57,8 @@ module Text.Blaze
 
       -- * Converting values to attribute values.
     , ToValue (..)
-    , textValue
     , preEscapedTextValue
-    , lazyTextValue
     , preEscapedLazyTextValue
-    , stringValue
     , preEscapedStringValue
     , unsafeByteStringValue
     , unsafeLazyByteStringValue
@@ -80,61 +74,61 @@ import qualified Data.Text.Lazy as LT
 
 import Text.Blaze.Internal
 
--- | Class allowing us to use a single function for HTML values
+-- | Class allowing us to use a single function for Markup values
 --
-class ToHtml a where
-    -- | Convert a value to HTML.
+class ToMarkup a where
+    -- | Convert a value to Markup.
     --
-    toHtml :: a -> Html
+    toMarkup :: a -> Markup
 
-instance ToHtml Html where
-    toHtml = id
-    {-# INLINE toHtml #-}
+instance ToMarkup Markup where
+    toMarkup = id
+    {-# INLINE toMarkup #-}
 
-instance ToHtml [Html] where
-    toHtml = mconcat
-    {-# INLINE toHtml #-}
+instance ToMarkup [Markup] where
+    toMarkup = mconcat
+    {-# INLINE toMarkup #-}
 
-instance ToHtml Text where
-    toHtml = text
-    {-# INLINE toHtml #-}
+instance ToMarkup Text where
+    toMarkup = text
+    {-# INLINE toMarkup #-}
 
-instance ToHtml LT.Text where
-    toHtml = lazyText
-    {-# INLINE toHtml #-}
+instance ToMarkup LT.Text where
+    toMarkup = lazyText
+    {-# INLINE toMarkup #-}
 
-instance ToHtml String where
-    toHtml = string
-    {-# INLINE toHtml #-}
+instance ToMarkup String where
+    toMarkup = string
+    {-# INLINE toMarkup #-}
 
-instance ToHtml Int where
-    toHtml = string . show
-    {-# INLINE toHtml #-}
+instance ToMarkup Int where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
 
-instance ToHtml Char where
-    toHtml = string . return
-    {-# INLINE toHtml #-}
+instance ToMarkup Char where
+    toMarkup = string . return
+    {-# INLINE toMarkup #-}
 
-instance ToHtml Bool where
-    toHtml = string . show
-    {-# INLINE toHtml #-}
+instance ToMarkup Bool where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
 
-instance ToHtml Integer where
-    toHtml = string . show
-    {-# INLINE toHtml #-}
+instance ToMarkup Integer where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
 
-instance ToHtml Float where
-    toHtml = string . show
-    {-# INLINE toHtml #-}
+instance ToMarkup Float where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
 
-instance ToHtml Double where
-    toHtml = string . show
-    {-# INLINE toHtml #-}
+instance ToMarkup Double where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
 
 -- | Class allowing us to use a single function for attribute values
 --
 class ToValue a where
-    -- | Convert a value to an HTML attribute value
+    -- | Convert a value to an attribute value
     --
     toValue :: a -> AttributeValue
 

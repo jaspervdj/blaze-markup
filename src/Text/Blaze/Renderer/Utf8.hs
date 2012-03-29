@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Blaze.Renderer.Utf8
-    ( renderHtmlBuilder
+    ( renderMarkupBuilder
+    , renderMarkup
+    , renderMarkupToByteStringIO
+    , renderHtmlBuilder
     , renderHtml
     , renderHtmlToByteStringIO
     ) where
@@ -40,13 +43,13 @@ fromChoiceString (AppendChoiceString x y) =
 fromChoiceString EmptyChoiceString = mempty
 {-# INLINE fromChoiceString #-}
 
--- | Render some 'Html' to a 'Builder'.
+-- | Render some 'Markup' to a 'Builder'.
 --
-renderHtmlBuilder :: Html     -- ^ HTML to render
+renderMarkupBuilder, renderHtmlBuilder :: Markup     -- ^ Markup to render
                   -> Builder  -- ^ Resulting builder
-renderHtmlBuilder = go mempty
+renderMarkupBuilder = go mempty
   where
-    go :: Builder -> HtmlM b -> Builder
+    go :: Builder -> MarkupM b -> Builder
     go attrs (Parent _ open close content) =
         B.copyByteString (getUtf8ByteString open)
             `mappend` attrs
@@ -71,21 +74,34 @@ renderHtmlBuilder = go mempty
     go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
     go _ Empty              = mempty
     {-# NOINLINE go #-}
+{-# INLINE renderMarkupBuilder #-}
+
+renderHtmlBuilder = renderMarkupBuilder
+{-# DEPRECATED renderHtmlBuilder "Use renderMarkupBuilder instead" #-}
 {-# INLINE renderHtmlBuilder #-}
 
 -- | Render HTML to a lazy UTF-8 encoded 'L.ByteString.'
 --
-renderHtml :: Html          -- ^ HTML to render
-           -> L.ByteString  -- ^ Resulting 'L.ByteString'
-renderHtml = B.toLazyByteString . renderHtmlBuilder
+renderMarkup, renderHtml :: Markup          -- ^ Markup to render
+                         -> L.ByteString  -- ^ Resulting 'L.ByteString'
+renderMarkup = B.toLazyByteString . renderMarkupBuilder
+{-# INLINE renderMarkup #-}
+
+renderHtml = renderMarkup
+{-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
+
 
 -- | Repeatedly render HTML to a buffer and process this buffer using the given
 -- IO action.
 --
-renderHtmlToByteStringIO :: (S.ByteString -> IO ())
-                                          -- ^ IO action to execute per rendered buffer
-                         -> Html          -- ^ HTML to render
-                         -> IO ()         -- ^ Resulting IO action
-renderHtmlToByteStringIO io = B.toByteStringIO io . renderHtmlBuilder
+renderMarkupToByteStringIO, renderHtmlToByteStringIO :: (S.ByteString -> IO ())
+                                                        -- ^ IO action to execute per rendered buffer
+                                                     -> Markup          -- ^ Markup to render
+                                                     -> IO ()         -- ^ Resulting IO action
+renderMarkupToByteStringIO io = B.toByteStringIO io . renderMarkupBuilder
+{-# INLINE renderMarkupToByteStringIO #-}
+
+renderHtmlToByteStringIO = renderMarkupToByteStringIO
+{-# DEPRECATED renderHtmlToByteStringIO "Use renderMarkupToByteStringIO instead" #-}
 {-# INLINE renderHtmlToByteStringIO #-}

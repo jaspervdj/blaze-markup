@@ -1,0 +1,41 @@
+Name:         blaze-markup
+Version:      0.1
+Homepage:     http://jaspervdj.be/blaze
+Bug-Reports:  http://github.com/???/???/issues
+License:      BSD3
+License-file: LICENSE
+Author:       Jasper Van der Jeugt, Simon Meier, Deepak Jois
+Maintainer:   Jasper Van der Jeugt <m@jaspervdj.be>
+Stability:    Experimental
+Category:     Text
+Synopsis:     A blazingly fast markup combinator library for Haskell
+Description:
+  Core modules of a blazingly fast markup combinator library for the Haskell
+  programming language. The Text.Blaze module is a good
+  starting point, as well as this tutorial:
+  <http://jaspervdj.be/blaze/tutorial.html>.
+
+Build-type:    Simple
+Cabal-version: >= 1.8
+
+Library
+  Hs-source-dirs: src
+  Ghc-Options:    -Wall
+
+  Exposed-modules:
+    Text.Blaze
+    Text.Blaze.Internal
+    Text.Blaze.Renderer.Pretty
+    Text.Blaze.Renderer.String
+    Text.Blaze.Renderer.Text
+    Text.Blaze.Renderer.Utf8
+
+  Build-depends:
+    base          >= 4    && < 5,
+    blaze-builder >= 0.2  && < 0.4,
+    text          >= 0.10 && < 0.12,
+    bytestring    >= 0.9  && < 0.10
+
+Source-repository head
+  Type:     git
+  Location: http://github.com/???/???

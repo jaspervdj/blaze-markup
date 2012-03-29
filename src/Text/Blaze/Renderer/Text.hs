@@ -2,7 +2,11 @@
 -- | A renderer that produces a lazy 'L.Text' value, using the Text Builder.
 --
 module Text.Blaze.Renderer.Text
-    ( renderHtmlBuilder
+    ( renderMarkupBuilder
+    , renderMarkupBuilderWith
+    , renderMarkup
+    , renderMarkupWith
+    , renderHtmlBuilder
     , renderHtmlBuilderWith
     , renderHtml
     , renderHtmlWith
@@ -22,11 +26,11 @@ import Text.Blaze.Internal
 import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
 
--- | Escape HTML entities in a text value
+-- | Escape predefined XML entities in a text value
 --
-escapeHtmlEntities :: Text     -- ^ Text to escape
+escapeMarkupEntities :: Text     -- ^ Text to escape
                    -> Builder  -- ^ Resulting text builder
-escapeHtmlEntities = T.foldr escape mempty
+escapeMarkupEntities = T.foldr escape mempty
   where
     escape :: Char -> Builder -> Builder
     escape '<'  b = B.fromText "&lt;"   `mappend` b
@@ -43,8 +47,8 @@ fromChoiceString :: (ByteString -> Text)  -- ^ Decoder for bytestrings
                  -> ChoiceString          -- ^ String to render
                  -> Builder               -- ^ Resulting builder
 fromChoiceString _ (Static s)     = B.fromText $ getText s
-fromChoiceString _ (String s)     = escapeHtmlEntities $ T.pack s
-fromChoiceString _ (Text s)       = escapeHtmlEntities s
+fromChoiceString _ (String s)     = escapeMarkupEntities $ T.pack s
+fromChoiceString _ (Text s)       = escapeMarkupEntities s
 fromChoiceString d (ByteString s) = B.fromText $ d s
 fromChoiceString d (PreEscaped x) = case x of
     String s -> B.fromText $ T.pack s
@@ -61,20 +65,24 @@ fromChoiceString d (AppendChoiceString x y) =
 fromChoiceString _ EmptyChoiceString = mempty
 {-# INLINE fromChoiceString #-}
 
--- | Render HTML to a text builder
-renderHtmlBuilder :: Html
-                  -> Builder
-renderHtmlBuilder = renderHtmlBuilderWith decodeUtf8
+-- | Render markup to a text builder
+renderMarkupBuilder, renderHtmlBuilder :: Markup
+                                       -> Builder
+renderMarkupBuilder = renderMarkupBuilderWith decodeUtf8
+{-# INLINE renderMarkupBuilder #-}
+
+renderHtmlBuilder = renderMarkupBuilder
+{-# DEPRECATED renderHtmlBuilder "Use renderMarkupBuilder instead" #-}
 {-# INLINE renderHtmlBuilder #-}
 
--- | Render some 'Html' to a Text 'Builder'.
+-- | Render some 'Markup' to a Text 'Builder'.
 --
-renderHtmlBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
-                      -> Html                  -- ^ HTML to render
-                      -> Builder               -- ^ Resulting builder
-renderHtmlBuilderWith d = go mempty
+renderMarkupBuilderWith, renderHtmlBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
+                                               -> Markup                  -- ^ Markup to render
+                                               -> Builder               -- ^ Resulting builder
+renderMarkupBuilderWith d = go mempty
   where
-    go :: Builder -> HtmlM b -> Builder
+    go :: Builder -> MarkupM b -> Builder
     go attrs (Parent _ open close content) =
         B.fromText (getText open)
             `mappend` attrs
@@ -99,22 +107,33 @@ renderHtmlBuilderWith d = go mempty
     go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
     go _ Empty              = mempty
     {-# NOINLINE go #-}
+{-# INLINE renderMarkupBuilderWith #-}
+
+renderHtmlBuilderWith = renderMarkupBuilderWith
+{-# DEPRECATED renderHtmlBuilderWith "Use renderMarkupBuilderWith instead" #-}
 {-# INLINE renderHtmlBuilderWith #-}
 
--- | Render HTML to a lazy Text value. If there are any ByteString's in the
--- input HTML, this function will consider them as UTF-8 encoded values and
+-- | Render markup to a lazy Text value. If there are any ByteString's in the
+-- input markup, this function will consider them as UTF-8 encoded values and
 -- decode them that way.
 --
-renderHtml :: Html    -- ^ HTML to render
-           -> L.Text  -- ^ Resulting 'L.Text'
-renderHtml = renderHtmlWith decodeUtf8
+renderMarkup, renderHtml :: Markup    -- ^ HTML to render
+                         -> L.Text  -- ^ Resulting 'L.Text'
+renderMarkup = renderMarkupWith decodeUtf8
+{-# INLINE renderMarkup #-}
+
+renderHtml = renderMarkup
+{-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
 
--- | Render HTML to a lazy Text value. This function allows you to specify what
+-- | Render markup to a lazy Text value. This function allows you to specify what
 -- should happen with ByteString's in the input HTML. You can decode them or
 -- drop them, this depends on the application...
 --
-renderHtmlWith :: (ByteString -> Text)  -- ^ Decoder for ByteString's.
-               -> Html                  -- ^ HTML to render
-               -> L.Text                -- Resulting lazy text
-renderHtmlWith d = B.toLazyText . renderHtmlBuilderWith d
+renderMarkupWith, renderHtmlWith :: (ByteString -> Text)  -- ^ Decoder for ByteString's.
+                                 -> Markup                  -- ^ Markup to render
+                                 -> L.Text                -- Resulting lazy text
+renderMarkupWith d = B.toLazyText . renderMarkupBuilderWith d
+
+renderHtmlWith = renderMarkupWith
+{-# DEPRECATED renderHtmlWith "Use renderMarkupWith instead" #-}
