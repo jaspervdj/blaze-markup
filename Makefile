@@ -30,12 +30,6 @@ benchmark:
 	$(GHC) $(GHC_FLAGS) --make -main-is RunHtmlBenchmarks benchmarks/RunHtmlBenchmarks.hs
 	./benchmarks/RunHtmlBenchmarks $(BENCHMARK_FLAGS) -u results.csv
 
-benchmark-server:
-	$(GHC) $(GHC_FLAGS) --make -threaded -main-is BenchmarkServer doc/examples/BenchmarkServer.lhs
-
-snap-benchmark-server:
-	$(GHC) $(GHC_FLAGS) --make -threaded -main-is SnapBenchmarkServer doc/examples/SnapBenchmarkServer.lhs
-
 benchmark-bigtable-non-haskell:
 	ruby benchmarks/bigtable/erb.rb
 	ruby benchmarks/bigtable/erubis.rb
