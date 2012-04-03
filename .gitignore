@@ -11,8 +11,9 @@ hpc
 
 notes/
 
-benchmarks/HtmlBenchmarks
 benchmarks/BigTableServer
+benchmarks/HtmlBenchmarks
+benchmarks/RunHtmlBenchmarks
 
 tests/TestSuite
 
