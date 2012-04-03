@@ -77,11 +77,11 @@ renderString = go id
 
 -- | Render markup to a lazy 'String'.
 --
-renderMarkup, renderHtml :: Markup    -- ^ HTML to render
-                         -> String  -- ^ Resulting 'String'
+renderMarkup :: Markup -> String
 renderMarkup html = renderString html ""
 {-# INLINE renderMarkup #-}
 
+renderHtml :: Markup -> String
 renderHtml = renderMarkup
 {-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}

@@ -4,19 +4,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Prelude hiding (putStrLn)
-
 import Control.Concurrent (forkIO)
-import Data.Monoid (mappend)
 import Control.Monad (forever)
-import Network.Socket (accept, sClose)
+import Data.Monoid (mappend)
 import Network (listenOn, PortID (PortNumber))
-import System (getArgs)
-import Data.Char (ord)
+import Network.Socket (accept, sClose)
+import Prelude hiding (putStrLn)
+import System.Environment (getArgs)
 
 import Network.Socket.ByteString (recv, send)
 import Network.Socket.ByteString.Lazy (sendAll)
-import qualified Data.ByteString as SB
 import qualified Data.ByteString.Char8 as SBC
 import qualified Data.ByteString.Lazy as LB
 
@@ -38,7 +35,7 @@ makeResponse chunkSize =
 main :: IO ()
 main = do
     args <- getArgs
-    let port = PortNumber $ fromIntegral $ read $ head args
+    let port = PortNumber $ fromIntegral $ (read $ head args :: Int)
         chunkSize = read $ args !! 1
 
     socket <- listenOn port

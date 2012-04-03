@@ -1,16 +1,15 @@
 -- | This is a collection of HTML benchmarks for BlazeMarkup.
 --
 {-# LANGUAGE OverloadedStrings, ExistentialQuantification #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 module HtmlBenchmarks where
 
 import Data.Monoid (Monoid, mempty, mconcat, mappend)
 import Prelude hiding (div, id)
 import qualified Prelude as P
 
-import Text.Blaze
-import Text.Blaze.Internal
-
 import BenchmarkUtils
+import Text.Blaze
 import qualified BenchmarkUtils as H
 
 -- | Description of an HTML benchmark

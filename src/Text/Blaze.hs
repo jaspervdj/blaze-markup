@@ -1,9 +1,10 @@
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
--- | BlazeMarkup is a markup combinator library. It provides a way to embed markup languages
--- like HTML and SVG in Haskell in an efficient and convenient way, with a light-weight syntax.
+-- | BlazeMarkup is a markup combinator library. It provides a way to embed
+-- markup languages like HTML and SVG in Haskell in an efficient and convenient
+-- way, with a light-weight syntax.
 --
--- To use the library, one needs to import a set of combinators. For
--- example, you can use HTML 4 Strict from BlazeHtml package.
+-- To use the library, one needs to import a set of combinators. For example,
+-- you can use HTML 4 Strict from BlazeHtml package.
 --
 -- > {-# LANGUAGE OverloadedStrings #-}
 -- > import Prelude hiding (head, id, div)

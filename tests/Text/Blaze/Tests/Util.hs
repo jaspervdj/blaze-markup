@@ -12,13 +12,13 @@ module Text.Blaze.Tests.Util
 import Prelude hiding (div, id)
 import Text.Blaze.Internal
 
-import qualified Data.ByteString.Lazy as LB
-import qualified Text.Blaze.Renderer.Utf8 as Utf8 (renderMarkup)
-import qualified Text.Blaze.Renderer.Text as Text (renderMarkup)
-import qualified Text.Blaze.Renderer.String as String (renderMarkup)
 import Blaze.ByteString.Builder as B (toLazyByteString)
 import Blaze.ByteString.Builder.Char.Utf8 as B (fromString)
 import Data.Text.Lazy.Encoding (encodeUtf8)
+import qualified Data.ByteString.Lazy as LB
+import qualified Text.Blaze.Renderer.String as String (renderMarkup)
+import qualified Text.Blaze.Renderer.Text as Text (renderMarkup)
+import qualified Text.Blaze.Renderer.Utf8 as Utf8 (renderMarkup)
 
 -- | Render Markup to an UTF-8 encoded ByteString using the String renderer
 --
@@ -69,6 +69,3 @@ id = attribute "id" " id=\""
 name :: AttributeValue  -- ^ Attribute value.
      -> Attribute       -- ^ Resulting attribute.
 name = attribute "name" " name=\""
-
-
-

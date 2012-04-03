@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving, Rank2Types,
-             FlexibleInstances, ExistentialQuantification, DeriveDataTypeable #-}
+             FlexibleInstances, ExistentialQuantification,
+             DeriveDataTypeable #-}
 -- | The BlazeMarkup core, consisting of functions that offer the power to
--- generate custom markup elements. It also offers user-centric functions, which
--- are exposed through 'Text.Blaze'.
+-- generate custom markup elements. It also offers user-centric functions,
+-- which are exposed through 'Text.Blaze'.
 --
 -- While this module is exported, usage of it is not recommended, unless you
 -- know what you are doing. This module might undergo changes at any time.
@@ -234,14 +235,14 @@ customAttribute tag value = Attribute $ AddCustomAttribute
 
 -- | Render text. Functions like these can be used to supply content in HTML.
 --
-text :: Text  -- ^ Text to render.
+text :: Text    -- ^ Text to render.
      -> Markup  -- ^ Resulting HTML fragment.
 text = Content . Text
 {-# INLINE text #-}
 
 -- | Render text without escaping.
 --
-preEscapedText :: Text  -- ^ Text to insert
+preEscapedText :: Text    -- ^ Text to insert
                -> Markup  -- ^ Resulting HTML fragment
 preEscapedText = Content . PreEscaped . Text
 {-# INLINE preEscapedText #-}
@@ -249,27 +250,27 @@ preEscapedText = Content . PreEscaped . Text
 -- | A variant of 'text' for lazy 'LT.Text'.
 --
 lazyText :: LT.Text  -- ^ Text to insert
-         -> Markup     -- ^ Resulting HTML fragment
+         -> Markup   -- ^ Resulting HTML fragment
 lazyText = mconcat . map text . LT.toChunks
 {-# INLINE lazyText #-}
 
 -- | A variant of 'preEscapedText' for lazy 'LT.Text'
 --
 preEscapedLazyText :: LT.Text  -- ^ Text to insert
-                   -> Markup     -- ^ Resulting HTML fragment
+                   -> Markup   -- ^ Resulting HTML fragment
 preEscapedLazyText = mconcat . map preEscapedText . LT.toChunks
 
 -- | Create an HTML snippet from a 'String'.
 --
 string :: String  -- ^ String to insert.
-       -> Markup    -- ^ Resulting HTML fragment.
+       -> Markup  -- ^ Resulting HTML fragment.
 string = Content . String
 {-# INLINE string #-}
 
 -- | Create an HTML snippet from a 'String' without escaping
 --
 preEscapedString :: String  -- ^ String to insert.
-                 -> Markup    -- ^ Resulting HTML fragment.
+                 -> Markup  -- ^ Resulting HTML fragment.
 preEscapedString = Content . PreEscaped . String
 {-# INLINE preEscapedString #-}
 
@@ -281,7 +282,7 @@ preEscapedString = Content . PreEscaped . String
 --   done).
 --
 unsafeByteString :: ByteString  -- ^ Value to insert.
-                 -> Markup        -- ^ Resulting HTML fragment.
+                 -> Markup      -- ^ Resulting HTML fragment.
 unsafeByteString = Content . ByteString
 {-# INLINE unsafeByteString #-}
 
@@ -289,7 +290,7 @@ unsafeByteString = Content . ByteString
 -- is an unsafe operation.
 --
 unsafeLazyByteString :: BL.ByteString  -- ^ Value to insert
-                     -> Markup           -- ^ Resulting HTML fragment
+                     -> Markup         -- ^ Resulting HTML fragment
 unsafeLazyByteString = mconcat . map unsafeByteString . BL.toChunks
 {-# INLINE unsafeLazyByteString #-}
 

@@ -34,10 +34,3 @@ benchmark-bigtable-non-haskell:
 	ruby benchmarks/bigtable/erb.rb
 	ruby benchmarks/bigtable/erubis.rb
 	php -n benchmarks/bigtable/php.php
-
-# Cleanup
-clean:
-	rm -rf doc/examples/BenchmarkServer doc/examples/*.hi
-	rm -rf benchmarks/HtmlBenchmarks benchmarks/*.hi
-	rm -rf Text/Blaze/*.hi Text/Blaze/Html4/*.hi Text/Blaze/Html5/*.hi Text/Blaze/Renderer/*.hi Text/*.hi
-	rm -rf Text/Blaze/*.o Text/Blaze/Html4/*.o Text/Blaze/Html5/*.o Text/Blaze/Renderer/*.o Text/*.o

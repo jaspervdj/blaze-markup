@@ -66,20 +66,20 @@ fromChoiceString _ EmptyChoiceString = mempty
 {-# INLINE fromChoiceString #-}
 
 -- | Render markup to a text builder
-renderMarkupBuilder, renderHtmlBuilder :: Markup
-                                       -> Builder
+renderMarkupBuilder :: Markup -> Builder
 renderMarkupBuilder = renderMarkupBuilderWith decodeUtf8
 {-# INLINE renderMarkupBuilder #-}
 
+renderHtmlBuilder :: Markup -> Builder
 renderHtmlBuilder = renderMarkupBuilder
 {-# DEPRECATED renderHtmlBuilder "Use renderMarkupBuilder instead" #-}
 {-# INLINE renderHtmlBuilder #-}
 
 -- | Render some 'Markup' to a Text 'Builder'.
 --
-renderMarkupBuilderWith, renderHtmlBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
-                                               -> Markup                  -- ^ Markup to render
-                                               -> Builder               -- ^ Resulting builder
+renderMarkupBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
+                        -> Markup                -- ^ Markup to render
+                        -> Builder               -- ^ Resulting builder
 renderMarkupBuilderWith d = go mempty
   where
     go :: Builder -> MarkupM b -> Builder
@@ -109,6 +109,9 @@ renderMarkupBuilderWith d = go mempty
     {-# NOINLINE go #-}
 {-# INLINE renderMarkupBuilderWith #-}
 
+renderHtmlBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
+                      -> Markup                -- ^ Markup to render
+                      -> Builder               -- ^ Resulting builder
 renderHtmlBuilderWith = renderMarkupBuilderWith
 {-# DEPRECATED renderHtmlBuilderWith "Use renderMarkupBuilderWith instead" #-}
 {-# INLINE renderHtmlBuilderWith #-}
@@ -117,11 +120,11 @@ renderHtmlBuilderWith = renderMarkupBuilderWith
 -- input markup, this function will consider them as UTF-8 encoded values and
 -- decode them that way.
 --
-renderMarkup, renderHtml :: Markup    -- ^ HTML to render
-                         -> L.Text  -- ^ Resulting 'L.Text'
+renderMarkup :: Markup -> L.Text
 renderMarkup = renderMarkupWith decodeUtf8
 {-# INLINE renderMarkup #-}
 
+renderHtml :: Markup -> L.Text
 renderHtml = renderMarkup
 {-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
@@ -130,10 +133,13 @@ renderHtml = renderMarkup
 -- should happen with ByteString's in the input HTML. You can decode them or
 -- drop them, this depends on the application...
 --
-renderMarkupWith, renderHtmlWith :: (ByteString -> Text)  -- ^ Decoder for ByteString's.
-                                 -> Markup                  -- ^ Markup to render
-                                 -> L.Text                -- Resulting lazy text
+renderMarkupWith :: (ByteString -> Text)  -- ^ Decoder for ByteString's.
+                 -> Markup                -- ^ Markup to render
+                 -> L.Text                -- Resulting lazy text
 renderMarkupWith d = B.toLazyText . renderMarkupBuilderWith d
 
+renderHtmlWith :: (ByteString -> Text)  -- ^ Decoder for ByteString's.
+               -> Markup                -- ^ Markup to render
+               -> L.Text                -- ^ Resulting lazy text
 renderHtmlWith = renderMarkupWith
 {-# DEPRECATED renderHtmlWith "Use renderMarkupWith instead" #-}

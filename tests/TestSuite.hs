@@ -8,4 +8,5 @@ import qualified Text.Blaze.Tests
 
 main :: IO ()
 main = defaultMain
-    [ testGroup "Text.Blaze.Tests"       Text.Blaze.Tests.tests ]
+    [ testGroup "Text.Blaze.Tests" Text.Blaze.Tests.tests
+    ]

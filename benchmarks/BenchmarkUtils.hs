@@ -2,14 +2,34 @@
 -- benchmarking
 --
 {-# LANGUAGE OverloadedStrings, NoMonomorphismRestriction #-}
-module BenchmarkUtils where
+module BenchmarkUtils
+    ( Html
+    , toHtml
 
-import Prelude hiding (div, id)
-import Text.Blaze.Internal
+    , tr
+    , td
+    , html
+    , head
+    , title
+    , body
+    , div
+    , h1
+    , h2
+    , p
+    , ol
+    , li
+    , table
+    , img
+    , id
+    ) where
+
+import Prelude hiding (div, head, id)
 import Text.Blaze
+import Text.Blaze.Internal
 
 type Html = Markup
 
+toHtml :: ToMarkup a => a -> Html
 toHtml = toMarkup
 
 tr :: Html  -- ^ Inner HTML.
@@ -85,4 +105,3 @@ id :: AttributeValue  -- ^ Attribute value.
    -> Attribute       -- ^ Resulting attribute.
 id = attribute "id" " id=\""
 {-# INLINE id #-}
-

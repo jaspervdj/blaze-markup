@@ -10,7 +10,7 @@ import Text.Blaze.Renderer.String (fromChoiceString)
 
 -- | Render some 'Markup' to an appending 'String'.
 --
-renderString :: Markup    -- ^ Markup to render
+renderString :: Markup  -- ^ Markup to render
              -> String  -- ^ String to append
              -> String  -- ^ Resulting String
 renderString = go 0 id
@@ -39,13 +39,11 @@ renderString = go 0 id
 
 -- | Render markup to a lazy 'String'. The result is prettified.
 --
-renderMarkup, renderHtml :: Markup    -- ^ Markup to render
-                         -> String  -- ^ Resulting 'String'.
+renderMarkup :: Markup -> String
 renderMarkup html = renderString html ""
 {-# INLINE renderMarkup #-}
 
+renderHtml :: Markup -> String
 renderHtml = renderMarkup
 {-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
-
-
