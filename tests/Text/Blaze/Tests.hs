@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, FlexibleInstances, TypeSynonymInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Text.Blaze.Tests
     ( tests
