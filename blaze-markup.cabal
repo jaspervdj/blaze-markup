@@ -1,7 +1,7 @@
 Name:         blaze-markup
 Version:      0.5.0.0
 Homepage:     http://jaspervdj.be/blaze
-Bug-Reports:  http://github.com/???/???/issues
+Bug-Reports:  http://github.com/jaspervdj/blaze-markup/issues
 License:      BSD3
 License-file: LICENSE
 Author:       Jasper Van der Jeugt, Simon Meier, Deepak Jois
@@ -61,4 +61,4 @@ Test-suite blaze-markup-tests
 
 Source-repository head
   Type:     git
-  Location: http://github.com/deepakjois/blaze-markup
+  Location: http://github.com/jaspervdj/blaze-markup
