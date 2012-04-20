@@ -40,6 +40,8 @@ benchmarks =
     , HtmlBenchmark "manyAttributes" manyAttributes manyAttributesData $ do
         "A single element with " >> toHtml (length manyAttributesData)
         " attributes."
+    , HtmlBenchmark "customAttribute" customAttributes customAttributesData $
+        "Creating custom attributes"
     ]
 
 rows :: Int
@@ -73,6 +75,9 @@ deepTreeData = 1000
 
 manyAttributesData :: [String]
 manyAttributesData = wideTreeData
+
+customAttributesData :: [(String, String)]
+customAttributesData = zip wideTreeData wideTreeData
 
 -- | Render the argument matrix as an HTML table.
 --
@@ -118,3 +123,10 @@ manyAttributes = foldl setAttribute img
   where
     setAttribute html' value' = html' ! id (toValue value')
     {-# INLINE setAttribute #-}
+
+customAttributes :: [(String, String)]  -- ^ List of attribute name, value pairs
+                 -> Html                -- ^ Result
+customAttributes = foldl setAttribute img
+  where
+    setAttribute html' (name, value') =
+        html' ! customAttribute (stringTag name) (toValue value')

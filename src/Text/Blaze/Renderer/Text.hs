@@ -99,8 +99,10 @@ renderMarkupBuilderWith d = go mempty
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
             `mappend` attrs) h
-    go attrs (AddCustomAttribute _ key value h) =
-        go (fromChoiceString d key
+    go attrs (AddCustomAttribute key value h) =
+        go (B.singleton ' '
+            `mappend` fromChoiceString d key
+            `mappend` B.fromText "=\""
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
             `mappend` attrs) h

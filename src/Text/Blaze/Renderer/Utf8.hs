@@ -65,8 +65,10 @@ renderMarkupBuilder = go mempty
             `mappend` fromChoiceString value
             `mappend` B.fromChar '"'
             `mappend` attrs) h
-    go attrs (AddCustomAttribute _ key value h) =
-        go (fromChoiceString key
+    go attrs (AddCustomAttribute key value h) =
+        go (B.fromChar ' '
+            `mappend` fromChoiceString key
+            `mappend` B.fromByteString "=\""
             `mappend` fromChoiceString value
             `mappend` B.fromChar '"'
             `mappend` attrs) h

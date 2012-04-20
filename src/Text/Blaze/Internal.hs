@@ -129,7 +129,7 @@ data MarkupM a
     -- receive the attribute.
     | AddAttribute StaticString StaticString ChoiceString (MarkupM a)
     -- | Add a custom attribute to the inner HTML.
-    | AddCustomAttribute ChoiceString ChoiceString ChoiceString (MarkupM a)
+    | AddCustomAttribute ChoiceString ChoiceString (MarkupM a)
     -- | Empty HTML.
     | Empty
     deriving (Typeable)
@@ -209,7 +209,6 @@ dataAttribute :: Tag             -- ^ Name of the attribute.
               -> Attribute       -- ^ Resulting HTML attribute.
 dataAttribute tag value = Attribute $ AddCustomAttribute
     (Static "data-" `mappend` Static (unTag tag))
-    (Static " data-" `mappend` Static (unTag tag) `mappend` Static "=\"")
     (unAttributeValue value)
 {-# INLINE dataAttribute #-}
 
@@ -229,7 +228,6 @@ customAttribute :: Tag             -- ^ Name of the attribute
                 -> Attribute       -- ^ Resulting HTML attribtue
 customAttribute tag value = Attribute $ AddCustomAttribute
     (Static $ unTag tag)
-    (Static " " `mappend` Static (unTag tag) `mappend` Static "=\"")
     (unAttributeValue value)
 {-# INLINE customAttribute #-}
 
@@ -409,6 +407,6 @@ external (Content x) = Content $ External x
 external (Append x y) = Append (external x) (external y)
 external (Parent x y z i) = Parent x y z $ external i
 external (AddAttribute x y z i) = AddAttribute x y z $ external i
-external (AddCustomAttribute x y z i) = AddCustomAttribute x y z $ external i
+external (AddCustomAttribute x y i) = AddCustomAttribute x y $ external i
 external x = x
 {-# INLINE external #-}

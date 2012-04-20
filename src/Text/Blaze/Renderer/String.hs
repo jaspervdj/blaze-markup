@@ -67,8 +67,9 @@ renderString = go id
     go attrs (Leaf _ begin end) = getString begin . attrs . getString end
     go attrs (AddAttribute _ key value h) = flip go h $
         getString key . fromChoiceString value . ('"' :) . attrs
-    go attrs (AddCustomAttribute _ key value h) = flip go h $
-        fromChoiceString key . fromChoiceString value . ('"' :) . attrs
+    go attrs (AddCustomAttribute key value h) = flip go h $
+        (' ' :) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
+        ('"' :) .  attrs
     go _ (Content content) = fromChoiceString content
     go attrs (Append h1 h2) = go attrs h1 . go attrs h2
     go _ Empty = id

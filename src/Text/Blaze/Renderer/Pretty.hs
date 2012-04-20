@@ -23,8 +23,9 @@ renderString = go 0 id
         ind i . getString begin . attrs . getString end . ('\n' :)
     go i attrs (AddAttribute _ key value h) = flip (go i) h $
         getString key . fromChoiceString value . ('"' :) . attrs
-    go i attrs (AddCustomAttribute _ key value h) = flip (go i) h $
-        fromChoiceString key . fromChoiceString value . ('"' :) . attrs
+    go i attrs (AddCustomAttribute key value h) = flip (go i) h $
+        (' ' : ) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
+        ('"' :) .  attrs
     go i _ (Content content) = ind i . fromChoiceString content . ('\n' :)
     go i attrs (Append h1 h2) = go i attrs h1 . go i attrs h2
     go _ _ Empty = id
