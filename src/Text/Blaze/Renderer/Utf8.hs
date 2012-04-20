@@ -56,10 +56,24 @@ renderMarkupBuilder = go mempty
             `mappend` B.fromChar '>'
             `mappend` go mempty content
             `mappend` B.copyByteString (getUtf8ByteString close)
+    go attrs (CustomParent tag content) =
+        B.fromChar '<'
+            `mappend` fromChoiceString tag
+            `mappend` attrs
+            `mappend` B.fromChar '>'
+            `mappend` go mempty content
+            `mappend` B.fromByteString "</"
+            `mappend` fromChoiceString tag
+            `mappend` B.fromChar '>'
     go attrs (Leaf _ begin end) =
         B.copyByteString (getUtf8ByteString begin)
             `mappend` attrs
             `mappend` B.copyByteString (getUtf8ByteString end)
+    go attrs (CustomLeaf tag close) =
+        B.fromChar '<'
+            `mappend` fromChoiceString tag
+            `mappend` attrs
+            `mappend` (if close then B.fromByteString " />" else B.fromChar '>')
     go attrs (AddAttribute _ key value h) =
         go (B.copyByteString (getUtf8ByteString key)
             `mappend` fromChoiceString value

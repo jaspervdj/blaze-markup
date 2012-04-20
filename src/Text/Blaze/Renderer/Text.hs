@@ -90,10 +90,24 @@ renderMarkupBuilderWith d = go mempty
             `mappend` B.singleton '>'
             `mappend` go mempty content
             `mappend` B.fromText (getText close)
+    go attrs (CustomParent tag content) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` attrs
+            `mappend` B.singleton '>'
+            `mappend` go mempty content
+            `mappend` B.fromText "</"
+            `mappend` fromChoiceString d tag
+            `mappend` B.singleton '>'
     go attrs (Leaf _ begin end) =
         B.fromText (getText begin)
             `mappend` attrs
             `mappend` B.fromText (getText end)
+    go attrs (CustomLeaf tag close) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` attrs
+            `mappend` (if close then B.fromText " />" else B.singleton '>')
     go attrs (AddAttribute _ key value h) =
         go (B.fromText (getText key)
             `mappend` fromChoiceString d value

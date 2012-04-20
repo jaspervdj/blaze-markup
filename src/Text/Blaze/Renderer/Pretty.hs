@@ -19,8 +19,15 @@ renderString = go 0 id
     go i attrs (Parent _ open close content) =
         ind i . getString open . attrs . (">\n" ++) . go (inc i) id content
               . ind i . getString close .  ('\n' :)
+    go i attrs (CustomParent tag content) =
+        ind i . ('<' :) . fromChoiceString tag . attrs . (">\n" ++) .
+        go (inc i) id content . ind i . ("</" ++) . fromChoiceString tag .
+        (">\n" ++)
     go i attrs (Leaf _ begin end) =
         ind i . getString begin . attrs . getString end . ('\n' :)
+    go i attrs (CustomLeaf tag close) =
+        ind i . ('<' :) . fromChoiceString tag . attrs .
+        ((if close then " />\n" else ">\n") ++)
     go i attrs (AddAttribute _ key value h) = flip (go i) h $
         getString key . fromChoiceString value . ('"' :) . attrs
     go i attrs (AddCustomAttribute key value h) = flip (go i) h $

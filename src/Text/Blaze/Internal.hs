@@ -20,6 +20,8 @@ module Text.Blaze.Internal
     , AttributeValue
 
       -- * Creating custom tags and attributes.
+    , customParent
+    , customLeaf
     , attribute
     , dataAttribute
     , customAttribute
@@ -119,8 +121,12 @@ instance IsString ChoiceString where
 data MarkupM a
     -- | Tag, open tag, end tag, content
     = forall b. Parent StaticString StaticString StaticString (MarkupM b)
+    -- | Custom parent
+    | forall b. CustomParent ChoiceString (MarkupM b)
     -- | Tag, open tag, end tag
     | Leaf StaticString StaticString StaticString
+    -- | Custom leaf
+    | CustomLeaf ChoiceString Bool
     -- | HTML content
     | Content ChoiceString
     -- | Concatenation of two HTML pieces
@@ -181,6 +187,18 @@ instance Monoid Attribute where
 --
 newtype AttributeValue = AttributeValue { unAttributeValue :: ChoiceString }
     deriving (IsString, Monoid)
+
+-- | Create a custom parent element
+customParent :: Tag     -- ^ Element tag
+             -> Markup  -- ^ Content
+             -> Markup  -- ^ Resulting markup
+customParent tag = CustomParent (Static $ unTag tag)
+
+-- | Create a custom leaf element
+customLeaf :: Tag     -- ^ Element tag
+           -> Bool    -- ^ Close the leaf?
+           -> Markup  -- ^ Resulting markup
+customLeaf tag = CustomLeaf (Static $ unTag tag)
 
 -- | Create an HTML attribute that can be applied to an HTML element later using
 -- the '!' operator.
@@ -406,6 +424,7 @@ external :: MarkupM a -> MarkupM a
 external (Content x) = Content $ External x
 external (Append x y) = Append (external x) (external y)
 external (Parent x y z i) = Parent x y z $ external i
+external (CustomParent x i) = CustomParent x $ external i
 external (AddAttribute x y z i) = AddAttribute x y z $ external i
 external (AddCustomAttribute x y i) = AddCustomAttribute x y $ external i
 external x = x

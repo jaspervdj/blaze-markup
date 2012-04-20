@@ -64,7 +64,13 @@ renderString = go id
     go :: (String -> String) -> MarkupM b -> String -> String
     go attrs (Parent _ open close content) =
         getString open . attrs . ('>' :) . go id content . getString close
+    go attrs (CustomParent tag content) =
+        ('<' :) . fromChoiceString tag . attrs . ('>' :) .  go id content .
+        ("</" ++) . fromChoiceString tag . ('>' :)
     go attrs (Leaf _ begin end) = getString begin . attrs . getString end
+    go attrs (CustomLeaf tag close) =
+        ('<' :) . fromChoiceString tag . attrs .
+        (if close then (" />" ++) else ('>' :))
     go attrs (AddAttribute _ key value h) = flip go h $
         getString key . fromChoiceString value . ('"' :) . attrs
     go attrs (AddCustomAttribute key value h) = flip go h $
