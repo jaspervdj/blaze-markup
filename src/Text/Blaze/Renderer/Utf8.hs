@@ -77,8 +77,9 @@ renderMarkupBuilder = go mempty
 {-# INLINE renderMarkupBuilder #-}
 
 renderHtmlBuilder = renderMarkupBuilder
-{-# DEPRECATED renderHtmlBuilder "Use renderMarkupBuilder instead" #-}
 {-# INLINE renderHtmlBuilder #-}
+{-# DEPRECATED renderHtmlBuilder
+    "Use renderHtmlBuilder from Text.Blaze.Html.Renderer.Utf8 instead" #-}
 
 -- | Render HTML to a lazy UTF-8 encoded 'L.ByteString.'
 --
@@ -88,8 +89,9 @@ renderMarkup = B.toLazyByteString . renderMarkupBuilder
 {-# INLINE renderMarkup #-}
 
 renderHtml = renderMarkup
-{-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
+{-# DEPRECATED renderHtml
+    "Use renderHtml from Text.Blaze.Html.Renderer.Utf8 instead" #-}
 
 
 -- | Repeatedly render HTML to a buffer and process this buffer using the given
@@ -103,5 +105,6 @@ renderMarkupToByteStringIO io = B.toByteStringIO io . renderMarkupBuilder
 {-# INLINE renderMarkupToByteStringIO #-}
 
 renderHtmlToByteStringIO = renderMarkupToByteStringIO
-{-# DEPRECATED renderHtmlToByteStringIO "Use renderMarkupToByteStringIO instead" #-}
 {-# INLINE renderHtmlToByteStringIO #-}
+{-# DEPRECATED renderHtmlToByteStringIO
+    "Use renderMarkupToByteStringIO from Text.Blaze.Html.Renderer.Utf8 instead" #-}

@@ -83,6 +83,6 @@ renderMarkup html = renderString html ""
 
 renderHtml :: Markup -> String
 renderHtml = renderMarkup
-{-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
-
+{-# DEPRECATED renderHtml
+    "Use renderHtml from Text.Blaze.Html.Renderer.String instead" #-}

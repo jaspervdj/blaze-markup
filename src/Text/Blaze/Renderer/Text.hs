@@ -72,8 +72,9 @@ renderMarkupBuilder = renderMarkupBuilderWith decodeUtf8
 
 renderHtmlBuilder :: Markup -> Builder
 renderHtmlBuilder = renderMarkupBuilder
-{-# DEPRECATED renderHtmlBuilder "Use renderMarkupBuilder instead" #-}
 {-# INLINE renderHtmlBuilder #-}
+{-# DEPRECATED renderHtmlBuilder
+    "Use renderHtmlBuilder from Text.Blaze.Html.Renderer.Text instead" #-}
 
 -- | Render some 'Markup' to a Text 'Builder'.
 --
@@ -113,8 +114,9 @@ renderHtmlBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
                       -> Markup                -- ^ Markup to render
                       -> Builder               -- ^ Resulting builder
 renderHtmlBuilderWith = renderMarkupBuilderWith
-{-# DEPRECATED renderHtmlBuilderWith "Use renderMarkupBuilderWith instead" #-}
 {-# INLINE renderHtmlBuilderWith #-}
+{-# DEPRECATED renderHtmlBuilderWith
+    "Use renderHtmlBuilderWith from Text.Blaze.Html.Renderer.Text instead" #-}
 
 -- | Render markup to a lazy Text value. If there are any ByteString's in the
 -- input markup, this function will consider them as UTF-8 encoded values and
@@ -126,8 +128,9 @@ renderMarkup = renderMarkupWith decodeUtf8
 
 renderHtml :: Markup -> L.Text
 renderHtml = renderMarkup
-{-# DEPRECATED renderHtml "Use renderMarkup instead" #-}
 {-# INLINE renderHtml #-}
+{-# DEPRECATED renderHtml
+    "Use renderHtml from Text.Blaze.Html.Renderer.Text instead" #-}
 
 -- | Render markup to a lazy Text value. This function allows you to specify what
 -- should happen with ByteString's in the input HTML. You can decode them or
@@ -142,4 +145,5 @@ renderHtmlWith :: (ByteString -> Text)  -- ^ Decoder for ByteString's.
                -> Markup                -- ^ Markup to render
                -> L.Text                -- ^ Resulting lazy text
 renderHtmlWith = renderMarkupWith
-{-# DEPRECATED renderHtmlWith "Use renderMarkupWith instead" #-}
+{-# DEPRECATED renderHtmlWith
+    "Use renderHtmlWith from Text.Blaze.Html.Renderer.Text instead" #-}
