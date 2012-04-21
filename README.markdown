@@ -1,6 +1,8 @@
 blaze-markup
 ============
 
+[![Build Status](https://secure.travis-ci.org/jaspervdj/blaze-markup.png?branch=master)](http://travis-ci.org/jaspervdj/blaze-markup)
+
 What
 ----
 
