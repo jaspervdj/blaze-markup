@@ -46,9 +46,6 @@ module Text.Blaze
 
       -- * Converting values to HTML.
     , ToMarkup (..)
-    , preEscapedText
-    , preEscapedLazyText
-    , preEscapedString
     , unsafeByteString
     , unsafeLazyByteString
 
@@ -58,9 +55,6 @@ module Text.Blaze
 
       -- * Converting values to attribute values.
     , ToValue (..)
-    , preEscapedTextValue
-    , preEscapedLazyTextValue
-    , preEscapedStringValue
     , unsafeByteStringValue
     , unsafeLazyByteStringValue
 
@@ -82,6 +76,12 @@ class ToMarkup a where
     --
     toMarkup :: a -> Markup
 
+    -- | Convert a value to Markup without escaping
+    --
+    preEscapedToMarkup :: a -> Markup
+    preEscapedToMarkup = toMarkup
+    {-# INLINE preEscapedToMarkup #-}
+
 instance ToMarkup Markup where
     toMarkup = id
     {-# INLINE toMarkup #-}
@@ -93,14 +93,20 @@ instance ToMarkup [Markup] where
 instance ToMarkup Text where
     toMarkup = text
     {-# INLINE toMarkup #-}
+    preEscapedToMarkup = preEscapedText
+    {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup LT.Text where
     toMarkup = lazyText
     {-# INLINE toMarkup #-}
+    preEscapedToMarkup = preEscapedLazyText
+    {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup String where
     toMarkup = string
     {-# INLINE toMarkup #-}
+    preEscapedToMarkup = preEscapedString
+    {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup Int where
     toMarkup = string . show
@@ -133,6 +139,12 @@ class ToValue a where
     --
     toValue :: a -> AttributeValue
 
+    -- | Convert a value to an attribute value without escaping
+    --
+    preEscapedToValue :: a -> AttributeValue
+    preEscapedToValue = toValue
+    {-# INLINE preEscapedToValue #-}
+
 instance ToValue AttributeValue where
     toValue = id
     {-# INLINE toValue #-}
@@ -140,14 +152,20 @@ instance ToValue AttributeValue where
 instance ToValue Text where
     toValue = textValue
     {-# INLINE toValue #-}
+    preEscapedToValue = preEscapedTextValue
+    {-# INLINE preEscapedToValue #-}
 
 instance ToValue LT.Text where
     toValue = lazyTextValue
     {-# INLINE toValue #-}
+    preEscapedToValue = preEscapedLazyTextValue
+    {-# INLINE preEscapedToValue #-}
 
 instance ToValue String where
     toValue = stringValue
     {-# INLINE toValue #-}
+    preEscapedToValue = preEscapedStringValue
+    {-# INLINE preEscapedToValue #-}
 
 instance ToValue Int where
     toValue = stringValue . show
