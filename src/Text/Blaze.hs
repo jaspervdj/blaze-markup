@@ -44,7 +44,7 @@ module Text.Blaze
     , dataAttribute
     , customAttribute
 
-      -- * Converting values to HTML.
+      -- * Converting values to Markup.
     , ToMarkup (..)
     , unsafeByteString
     , unsafeLazyByteString
@@ -60,6 +60,9 @@ module Text.Blaze
 
       -- * Setting attributes
     , (!)
+
+      -- * Modifiying Markup trees
+    , contents
     ) where
 
 import Data.Monoid (mconcat)

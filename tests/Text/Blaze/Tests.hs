@@ -12,12 +12,14 @@ import Data.Word (Word8)
 import Data.Char (ord)
 import Data.List (isInfixOf)
 
-import qualified Data.ByteString as SB
-import qualified Data.ByteString.Lazy.Char8 as LBC
-import qualified Data.ByteString.Lazy as LB
-import Test.Framework
-import Test.Framework.Providers.QuickCheck2
+import Test.Framework (Test)
+import Test.HUnit (Assertion, (@=?))
+import Test.Framework.Providers.HUnit (testCase)
+import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
+import qualified Data.ByteString as SB
+import qualified Data.ByteString.Lazy as LB
+import qualified Data.ByteString.Lazy.Char8 as LBC
 
 import Text.Blaze.Internal
 import Text.Blaze.Tests.Util
@@ -32,6 +34,8 @@ tests = [ testProperty "left identity Monoid law"  monoidLeftIdentity
         , testProperty "external </ sequence"      externalEndSequence
         , testProperty "well nested <>"            wellNestedBrackets
         , testProperty "unsafeByteString id"       unsafeByteStringId
+
+        , testCase     "contents 1"                contents1
         ]
 
 -- | The left identity Monoid law.
@@ -109,6 +113,15 @@ wellNestedBrackets = wellNested False . LBC.unpack . renderUsingUtf8
         '<' -> if isOpen then False else wellNested True xs
         '>' -> if isOpen then wellNested False xs else False
         _   -> wellNested isOpen xs
+
+contents1 :: Assertion
+contents1 = "Hello World!" @=? renderUsingUtf8 (contents html)
+  where
+    html :: Markup
+    html = div $ do
+        p ! id "para" $ "Hello "
+        img ! name "An image"
+        p "World!"
 
 -- Show instance for the HTML type, so we can debug.
 --

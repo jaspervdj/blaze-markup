@@ -26,7 +26,7 @@ module Text.Blaze.Internal
     , dataAttribute
     , customAttribute
 
-      -- * Converting values to HTML.
+      -- * Converting values to Markup.
     , text
     , preEscapedText
     , lazyText
@@ -54,7 +54,8 @@ module Text.Blaze.Internal
     , Attributable
     , (!)
 
-      -- * Modifying HTML elements
+      -- * Modifying Markup elements
+    , contents
     , external
     ) where
 
@@ -429,3 +430,22 @@ external (AddAttribute x y z i) = AddAttribute x y z $ external i
 external (AddCustomAttribute x y i) = AddCustomAttribute x y $ external i
 external x = x
 {-# INLINE external #-}
+
+-- | Take only the text content of an HTML tree.
+--
+-- > contents $ do
+-- >     p ! $ "Hello "
+-- >     p ! $ "Word!"
+--
+-- Result:
+--
+-- > Hello World!
+--
+contents :: MarkupM a -> MarkupM b
+contents (Parent _ _ _ c)           = contents c
+contents (CustomParent _ c)         = contents c
+contents (Content c)                = Content c
+contents (Append c1 c2)             = Append (contents c1) (contents c2)
+contents (AddAttribute _ _ _ c)     = contents c
+contents (AddCustomAttribute _ _ c) = contents c
+contents _                          = Empty
