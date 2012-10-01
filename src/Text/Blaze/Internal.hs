@@ -32,6 +32,8 @@ module Text.Blaze.Internal
     , lazyText
     , preEscapedLazyText
     , string
+    , int
+    , integer
     , preEscapedString
     , unsafeByteString
     , unsafeLazyByteString
@@ -47,6 +49,8 @@ module Text.Blaze.Internal
     , preEscapedLazyTextValue
     , stringValue
     , preEscapedStringValue
+    , intValue
+    , integerValue
     , unsafeByteStringValue
     , unsafeLazyByteStringValue
 
@@ -96,6 +100,10 @@ data ChoiceString
     | String String
     -- | A Text value
     | Text Text
+    -- | A decimal 'Int' value
+    | Int {-# UNPACK #-} !Int
+    -- | A decimal 'Integer' value
+    | Integer Integer
     -- | An encoded bytestring
     | ByteString B.ByteString
     -- | A pre-escaped string
@@ -284,6 +292,20 @@ string :: String  -- ^ String to insert.
 string = Content . String
 {-# INLINE string #-}
 
+-- | Create an HTML snippet from a decimally encoded 'Int'.
+--
+int :: Int -- ^ 'Int' whose decimal encoding to insert.
+    -> Markup  -- ^ Resulting HTML fragment.
+int = Content . Int
+{-# INLINE int #-}
+
+-- | Create an HTML snippet from a decimally encoded 'Integer'.
+--
+integer :: Integer -- ^ Integer whose decimal encoding to insert.
+        -> Markup  -- ^ Resulting HTML fragment.
+integer = Content . Integer
+{-# INLINE integer #-}
+
 -- | Create an HTML snippet from a 'String' without escaping
 --
 preEscapedString :: String  -- ^ String to insert.
@@ -356,6 +378,19 @@ preEscapedLazyTextValue = mconcat . map preEscapedTextValue . LT.toChunks
 stringValue :: String -> AttributeValue
 stringValue = AttributeValue . String
 {-# INLINE stringValue #-}
+
+-- | Create an attribute value from a decimally encoded 'Int'.
+--
+intValue :: Int-> AttributeValue
+intValue = AttributeValue . Int
+{-# INLINE intValue #-}
+
+-- | Create an attribute value from a decimally encoded 'Integer'.
+-- | Create an attribute value from an 'Integer'.
+--
+integerValue :: Integer-> AttributeValue
+integerValue = AttributeValue . Integer
+{-# INLINE integerValue #-}
 
 -- | Create an attribute value from a 'String' without escaping.
 --

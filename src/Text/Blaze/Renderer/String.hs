@@ -38,6 +38,8 @@ fromChoiceString :: ChoiceString  -- ^ String to render
 fromChoiceString (Static s)     = getString s
 fromChoiceString (String s)     = escapeMarkupEntities s
 fromChoiceString (Text s)       = escapeMarkupEntities $ T.unpack s
+fromChoiceString (Int i)        = escapeMarkupEntities $ show i
+fromChoiceString (Integer i)    = escapeMarkupEntities $ show i
 fromChoiceString (ByteString s) = (SBC.unpack s ++)
 fromChoiceString (PreEscaped x) = case x of
     String s -> (s ++)
@@ -59,7 +61,7 @@ fromChoiceString EmptyChoiceString = id
 renderString :: Markup    -- ^ Markup to render
              -> String  -- ^ String to append
              -> String  -- ^ Resulting String
-renderString = go id 
+renderString = go id
   where
     go :: (String -> String) -> MarkupM b -> String -> String
     go attrs (Parent _ open close content) =

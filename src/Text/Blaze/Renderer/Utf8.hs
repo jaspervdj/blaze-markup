@@ -67,6 +67,10 @@ fromChoiceString (String s)     = stringUtf8HtmlEscaped s
 fromChoiceString (Text s)       = textUtf8HtmlEscaped s
     -- FIXME: Once we have the proper 'Builder' intergration in 'text' use
     -- the corresponding escaping mechanism.
+fromChoiceString (Integer i)    = B.string7 $ show i
+    -- FIXME: Use 'B.integerDec' once the fast integer encoding patch is
+    -- ported to the new bytestring builder.
+fromChoiceString (Int i)        = B.intDec i
 fromChoiceString (ByteString s) = B.byteString s
 fromChoiceString (PreEscaped x) = case x of
     String s -> B.stringUtf8 s

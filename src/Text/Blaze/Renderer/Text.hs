@@ -25,11 +25,12 @@ import qualified Data.ByteString as S (isInfixOf)
 import Text.Blaze.Internal
 import Data.Text.Lazy.Builder (Builder)
 import qualified Data.Text.Lazy.Builder as B
+import qualified Data.Text.Lazy.Builder.Int as B
 
 -- | Escape predefined XML entities in a text value
 --
 escapeMarkupEntities :: Text     -- ^ Text to escape
-                   -> Builder  -- ^ Resulting text builder
+                     -> Builder  -- ^ Resulting text builder
 escapeMarkupEntities = T.foldr escape mempty
   where
     escape :: Char -> Builder -> Builder
@@ -49,6 +50,8 @@ fromChoiceString :: (ByteString -> Text)  -- ^ Decoder for bytestrings
 fromChoiceString _ (Static s)     = B.fromText $ getText s
 fromChoiceString _ (String s)     = escapeMarkupEntities $ T.pack s
 fromChoiceString _ (Text s)       = escapeMarkupEntities s
+fromChoiceString _ (Int i)        = B.decimal i
+fromChoiceString _ (Integer i)    = B.decimal i
 fromChoiceString d (ByteString s) = B.fromText $ d s
 fromChoiceString d (PreEscaped x) = case x of
     String s -> B.fromText $ T.pack s

@@ -112,7 +112,7 @@ instance ToMarkup String where
     {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup Int where
-    toMarkup = string . show
+    toMarkup = int
     {-# INLINE toMarkup #-}
 
 instance ToMarkup Char where
@@ -124,7 +124,7 @@ instance ToMarkup Bool where
     {-# INLINE toMarkup #-}
 
 instance ToMarkup Integer where
-    toMarkup = string . show
+    toMarkup = integer
     {-# INLINE toMarkup #-}
 
 instance ToMarkup Float where
@@ -171,7 +171,7 @@ instance ToValue String where
     {-# INLINE preEscapedToValue #-}
 
 instance ToValue Int where
-    toValue = stringValue . show
+    toValue = intValue
     {-# INLINE toValue #-}
 
 instance ToValue Char where
@@ -183,7 +183,7 @@ instance ToValue Bool where
     {-# INLINE toValue #-}
 
 instance ToValue Integer where
-    toValue = stringValue . show
+    toValue = integerValue
     {-# INLINE toValue #-}
 
 instance ToValue Float where
