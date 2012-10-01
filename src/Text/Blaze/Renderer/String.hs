@@ -27,7 +27,6 @@ escapeMarkupEntities (c:cs) k = case c of
     '>'  -> '&' : 'g' : 't' : ';'       : escapeMarkupEntities cs k
     '&'  -> '&' : 'a' : 'm' : 'p' : ';' : escapeMarkupEntities cs k
     '"'  -> '&' : '#' : '3' : '4' : ';' : escapeMarkupEntities cs k
-    '\'' -> '&' : '#' : '3' : '9' : ';' : escapeMarkupEntities cs k
     x    -> x                           : escapeMarkupEntities cs k
 
 -- | Render a 'ChoiceString'.

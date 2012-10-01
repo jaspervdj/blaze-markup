@@ -38,7 +38,6 @@ escapeMarkupEntities = T.foldr escape mempty
     escape '>'  b = B.fromText "&gt;"  `mappend` b
     escape '&'  b = B.fromText "&amp;" `mappend` b
     escape '"'  b = B.fromText "&#34;" `mappend` b
-    escape '\'' b = B.fromText "&#39;" `mappend` b
     escape x    b = B.singleton x      `mappend` b
 
 -- | Render a 'ChoiceString'. TODO: Optimization possibility, apply static

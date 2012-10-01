@@ -64,7 +64,7 @@ postEscapingCharacters :: String -> Bool
 postEscapingCharacters str =
     LB.all (`notElem` forbidden) $ renderUsingUtf8 (string str)
   where
-    forbidden = map (fromIntegral . ord) "\"'<>"
+    forbidden = map (fromIntegral . ord) "\"<>"
 
 -- | Check if the produced bytes are valid UTF-8
 --

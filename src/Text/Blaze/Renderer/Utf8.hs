@@ -35,7 +35,6 @@ charUtf8HtmlEscaped =
     condB (== '>' ) (fixed4 ('&',('g',('t',';')))) $        -- &gt;
     condB (== '&' ) (fixed5 ('&',('a',('m',('p',';'))))) $  -- &amp;
     condB (== '"' ) (fixed5 ('&',('#',('3',('4',';'))))) $  -- &#34;
-    condB (== '\'') (fixed5 ('&',('#',('3',('9',';'))))) $  -- &#39;
     (BP.liftFixedToBounded BP.char7)    -- fallback for Chars smaller than '>'
   where
     {-# INLINE fixed4 #-}
