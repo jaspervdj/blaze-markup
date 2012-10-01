@@ -148,7 +148,7 @@ instance Arbitrary Markup where
 --
 arbitraryMarkup :: Int       -- ^ Maximum depth.
               -> Gen Markup  -- ^ Resulting arbitrary HTML snippet.
-arbitraryMarkup depth = do 
+arbitraryMarkup depth = do
     -- Choose the size (width) of this element.
     size <- choose (0, 3)
 
