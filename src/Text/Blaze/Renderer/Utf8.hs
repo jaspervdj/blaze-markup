@@ -2,41 +2,81 @@
 module Text.Blaze.Renderer.Utf8
     ( renderMarkupBuilder
     , renderMarkup
-    , renderMarkupToByteStringIO
+    -- , renderMarkupToByteStringIO
     , renderHtmlBuilder
     , renderHtml
-    , renderHtmlToByteStringIO
+    -- , renderHtmlToByteStringIO
     ) where
 
-import Data.Monoid (mappend, mempty)
-import Data.List (isInfixOf)
+import           Data.List                     (isInfixOf)
+import           Data.Monoid                   (mappend, mempty)
 
-import qualified Data.ByteString.Lazy as L
-import qualified Data.Text as T (isInfixOf)
-import qualified Data.ByteString as S (ByteString, isInfixOf)
+import           Data.Text                     (Text)
+import qualified Data.Text                     as T (isInfixOf, unpack)
 
-import Text.Blaze.Internal
-import Blaze.ByteString.Builder (Builder)
-import qualified Blaze.ByteString.Builder           as B
-import qualified Blaze.ByteString.Builder.Html.Utf8 as B
+import qualified Data.ByteString               as S (isInfixOf)
+import           Data.ByteString.Builder       (Builder)
+import qualified Data.ByteString.Builder       as B
+import qualified Data.ByteString.Builder.Extra as B
+import qualified Data.ByteString.Builder.Prim  as BP
+import           Data.ByteString.Builder.Prim  (condB, (>$<), (>*<))
+import qualified Data.ByteString.Lazy          as L
+
+import           Text.Blaze.Internal
+
+-- Support functions
+--------------------
+
+{-# INLINE charUtf8HtmlEscaped #-}
+charUtf8HtmlEscaped :: BP.BoundedPrim Char
+charUtf8HtmlEscaped =
+    condB (>  '>' ) BP.charUtf8 $
+    condB (== '<' ) (fixed4 ('&',('l',('t',';')))) $        -- &lt;
+    condB (== '>' ) (fixed4 ('&',('g',('t',';')))) $        -- &gt;
+    condB (== '&' ) (fixed5 ('&',('a',('m',('p',';'))))) $  -- &amp;
+    condB (== '"' ) (fixed5 ('&',('#',('3',('4',';'))))) $  -- &#34;
+    condB (== '\'') (fixed5 ('&',('#',('3',('9',';'))))) $  -- &#39;
+    (BP.liftFixedToBounded BP.char7)    -- fallback for Chars smaller than '>'
+  where
+    {-# INLINE fixed4 #-}
+    fixed4 x = BP.liftFixedToBounded $ const x >$<
+      BP.char7 >*< BP.char7 >*< BP.char7 >*< BP.char7
+
+    {-# INLINE fixed5 #-}
+    fixed5 x = BP.liftFixedToBounded $ const x >$<
+      BP.char7 >*< BP.char7 >*< BP.char7 >*< BP.char7 >*< BP.char7
+
+stringUtf8HtmlEscaped :: String -> Builder
+stringUtf8HtmlEscaped = BP.primMapListBounded charUtf8HtmlEscaped
+
+textUtf8HtmlEscaped :: Text -> Builder
+textUtf8HtmlEscaped = stringUtf8HtmlEscaped . T.unpack
+
+textUtf8 :: Text -> Builder
+textUtf8 = B.stringUtf8 . T.unpack
+
+-- Rendering
+------------
 
 -- | Render a 'ChoiceString'.
 --
 fromChoiceString :: ChoiceString  -- ^ String to render
                  -> Builder       -- ^ Resulting builder
-fromChoiceString (Static s)     = B.copyByteString $ getUtf8ByteString s
-fromChoiceString (String s)     = B.fromHtmlEscapedString s
-fromChoiceString (Text s)       = B.fromHtmlEscapedText s
-fromChoiceString (ByteString s) = B.fromByteString s
+fromChoiceString (Static s)     = B.byteStringCopy $ getUtf8ByteString s
+fromChoiceString (String s)     = stringUtf8HtmlEscaped s
+fromChoiceString (Text s)       = textUtf8HtmlEscaped s
+    -- FIXME: Once we have the proper 'Builder' intergration in 'text' use
+    -- the corresponding escaping mechanism.
+fromChoiceString (ByteString s) = B.byteString s
 fromChoiceString (PreEscaped x) = case x of
-    String s -> B.fromString s
-    Text   s -> B.fromText s
+    String s -> B.stringUtf8 s
+    Text   s -> textUtf8 s
     s        -> fromChoiceString s
 fromChoiceString (External x) = case x of
     -- Check that the sequence "</" is *not* in the external data.
-    String s     -> if "</" `isInfixOf` s then mempty else B.fromString s
-    Text   s     -> if "</" `T.isInfixOf` s then mempty else B.fromText s
-    ByteString s -> if "</" `S.isInfixOf` s then mempty else B.fromByteString s
+    String s     -> if "</" `isInfixOf` s then mempty else B.stringUtf8 s
+    Text   s     -> if "</" `T.isInfixOf` s then mempty else textUtf8 s
+    ByteString s -> if "</" `S.isInfixOf` s then mempty else B.byteString s
     s            -> fromChoiceString s
 fromChoiceString (AppendChoiceString x y) =
     fromChoiceString x `mappend` fromChoiceString y
@@ -51,40 +91,40 @@ renderMarkupBuilder = go mempty
   where
     go :: Builder -> MarkupM b -> Builder
     go attrs (Parent _ open close content) =
-        B.copyByteString (getUtf8ByteString open)
+        B.byteStringCopy (getUtf8ByteString open)
             `mappend` attrs
-            `mappend` B.fromChar '>'
+            `mappend` B.char7 '>'
             `mappend` go mempty content
-            `mappend` B.copyByteString (getUtf8ByteString close)
+            `mappend` B.byteStringCopy (getUtf8ByteString close)
     go attrs (CustomParent tag content) =
-        B.fromChar '<'
+        B.char7 '<'
             `mappend` fromChoiceString tag
             `mappend` attrs
-            `mappend` B.fromChar '>'
+            `mappend` B.char7 '>'
             `mappend` go mempty content
-            `mappend` B.fromByteString "</"
+            `mappend` B.byteStringCopy "</"
             `mappend` fromChoiceString tag
-            `mappend` B.fromChar '>'
+            `mappend` B.char7 '>'
     go attrs (Leaf _ begin end) =
-        B.copyByteString (getUtf8ByteString begin)
+        B.byteStringCopy (getUtf8ByteString begin)
             `mappend` attrs
-            `mappend` B.copyByteString (getUtf8ByteString end)
+            `mappend` B.byteStringCopy (getUtf8ByteString end)
     go attrs (CustomLeaf tag close) =
-        B.fromChar '<'
+        B.char7 '<'
             `mappend` fromChoiceString tag
             `mappend` attrs
-            `mappend` (if close then B.fromByteString " />" else B.fromChar '>')
+            `mappend` (if close then B.byteStringCopy " />" else B.char7 '>')
     go attrs (AddAttribute _ key value h) =
-        go (B.copyByteString (getUtf8ByteString key)
+        go (B.byteStringCopy (getUtf8ByteString key)
             `mappend` fromChoiceString value
-            `mappend` B.fromChar '"'
+            `mappend` B.char7 '"'
             `mappend` attrs) h
     go attrs (AddCustomAttribute key value h) =
-        go (B.fromChar ' '
+        go (B.char7 ' '
             `mappend` fromChoiceString key
-            `mappend` B.fromByteString "=\""
+            `mappend` B.byteStringCopy "=\""
             `mappend` fromChoiceString value
-            `mappend` B.fromChar '"'
+            `mappend` B.char7 '"'
             `mappend` attrs) h
     go _ (Content content)  = fromChoiceString content
     go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
@@ -110,6 +150,8 @@ renderHtml = renderMarkup
     "Use renderHtml from Text.Blaze.Html.Renderer.Utf8 instead" #-}
 
 
+{- No longer supported with the new builder interface.
+ -
 -- | Repeatedly render HTML to a buffer and process this buffer using the given
 -- IO action.
 --
@@ -124,3 +166,4 @@ renderHtmlToByteStringIO = renderMarkupToByteStringIO
 {-# INLINE renderHtmlToByteStringIO #-}
 {-# DEPRECATED renderHtmlToByteStringIO
     "Use renderMarkupToByteStringIO from Text.Blaze.Html.Renderer.Utf8 instead" #-}
+-}
