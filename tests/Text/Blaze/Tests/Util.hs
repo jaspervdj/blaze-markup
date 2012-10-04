@@ -12,8 +12,7 @@ module Text.Blaze.Tests.Util
 import Prelude hiding (div, id)
 import Text.Blaze.Internal
 
-import Blaze.ByteString.Builder as B (toLazyByteString)
-import Blaze.ByteString.Builder.Char.Utf8 as B (fromString)
+import Data.ByteString.Builder (toLazyByteString, stringUtf8)
 import Data.Text.Lazy.Encoding (encodeUtf8)
 import qualified Data.ByteString.Lazy as LB
 import qualified Text.Blaze.Renderer.String as String (renderMarkup)
@@ -23,7 +22,7 @@ import qualified Text.Blaze.Renderer.Utf8 as Utf8 (renderMarkup)
 -- | Render Markup to an UTF-8 encoded ByteString using the String renderer
 --
 renderUsingString :: Markup -> LB.ByteString
-renderUsingString = toLazyByteString . fromString . String.renderMarkup
+renderUsingString = toLazyByteString . stringUtf8 . String.renderMarkup
 
 -- | Render Markup to an UTF-8 encoded ByteString using the Text renderer
 --

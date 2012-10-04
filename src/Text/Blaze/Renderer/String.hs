@@ -23,12 +23,11 @@ escapeMarkupEntities :: String  -- ^ String to escape
                    -> String  -- ^ Resulting string
 escapeMarkupEntities []     k = k
 escapeMarkupEntities (c:cs) k = case c of
-    '<'  -> '&' : 'l' : 't' : ';'             : escapeMarkupEntities cs k
-    '>'  -> '&' : 'g' : 't' : ';'             : escapeMarkupEntities cs k
-    '&'  -> '&' : 'a' : 'm' : 'p' : ';'       : escapeMarkupEntities cs k
-    '"'  -> '&' : 'q' : 'u' : 'o' : 't' : ';' : escapeMarkupEntities cs k
-    '\'' -> '&' : '#' : '3' : '9' : ';'       : escapeMarkupEntities cs k
-    x    -> x                                 : escapeMarkupEntities cs k
+    '<'  -> '&' : 'l' : 't' : ';'       : escapeMarkupEntities cs k
+    '>'  -> '&' : 'g' : 't' : ';'       : escapeMarkupEntities cs k
+    '&'  -> '&' : 'a' : 'm' : 'p' : ';' : escapeMarkupEntities cs k
+    '"'  -> '&' : '#' : '3' : '4' : ';' : escapeMarkupEntities cs k
+    x    -> x                           : escapeMarkupEntities cs k
 
 -- | Render a 'ChoiceString'.
 --
@@ -38,6 +37,8 @@ fromChoiceString :: ChoiceString  -- ^ String to render
 fromChoiceString (Static s)     = getString s
 fromChoiceString (String s)     = escapeMarkupEntities s
 fromChoiceString (Text s)       = escapeMarkupEntities $ T.unpack s
+fromChoiceString (Int i)        = shows i
+fromChoiceString (Integer i)    = shows i
 fromChoiceString (ByteString s) = (SBC.unpack s ++)
 fromChoiceString (PreEscaped x) = case x of
     String s -> (s ++)
@@ -59,7 +60,7 @@ fromChoiceString EmptyChoiceString = id
 renderString :: Markup    -- ^ Markup to render
              -> String  -- ^ String to append
              -> String  -- ^ Resulting String
-renderString = go id 
+renderString = go id
   where
     go :: (String -> String) -> MarkupM b -> String -> String
     go attrs (Parent _ open close content) =

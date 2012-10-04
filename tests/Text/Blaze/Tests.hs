@@ -64,7 +64,7 @@ postEscapingCharacters :: String -> Bool
 postEscapingCharacters str =
     LB.all (`notElem` forbidden) $ renderUsingUtf8 (string str)
   where
-    forbidden = map (fromIntegral . ord) "\"'<>"
+    forbidden = map (fromIntegral . ord) "\"<>"
 
 -- | Check if the produced bytes are valid UTF-8
 --
@@ -148,7 +148,7 @@ instance Arbitrary Markup where
 --
 arbitraryMarkup :: Int       -- ^ Maximum depth.
               -> Gen Markup  -- ^ Resulting arbitrary HTML snippet.
-arbitraryMarkup depth = do 
+arbitraryMarkup depth = do
     -- Choose the size (width) of this element.
     size <- choose (0, 3)
 
