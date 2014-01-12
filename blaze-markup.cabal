@@ -1,5 +1,5 @@
 Name:         blaze-markup
-Version:      0.5.1.6
+Version:      0.5.1.7
 Homepage:     http://jaspervdj.be/blaze
 Bug-Reports:  http://github.com/jaspervdj/blaze-markup/issues
 License:      BSD3
@@ -33,7 +33,7 @@ Library
   Build-depends:
     base          >= 4    && < 5,
     blaze-builder >= 0.2  && < 0.4,
-    text          >= 0.10 && < 1.1,
+    text          >= 0.10 && < 1.2,
     bytestring    >= 0.9  && < 0.11
 
 Test-suite blaze-markup-tests
@@ -56,7 +56,7 @@ Test-suite blaze-markup-tests
     -- Copied from regular dependencies...
     base          >= 4    && < 5,
     blaze-builder >= 0.2  && < 0.4,
-    text          >= 0.10 && < 1.1,
+    text          >= 0.10 && < 1.2,
     bytestring    >= 0.9  && < 0.11
 
 Source-repository head
