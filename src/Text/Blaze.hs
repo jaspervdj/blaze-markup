@@ -66,6 +66,8 @@ module Text.Blaze
     ) where
 
 import Data.Monoid (mconcat)
+import Data.Int (Int32, Int64)
+import Data.Word (Word, Word32, Word64)
 
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -115,6 +117,14 @@ instance ToMarkup Int where
     toMarkup = string . show
     {-# INLINE toMarkup #-}
 
+instance ToMarkup Int32 where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
+
+instance ToMarkup Int64 where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
+
 instance ToMarkup Char where
     toMarkup = string . return
     {-# INLINE toMarkup #-}
@@ -132,6 +142,18 @@ instance ToMarkup Float where
     {-# INLINE toMarkup #-}
 
 instance ToMarkup Double where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
+
+instance ToMarkup Word where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
+
+instance ToMarkup Word32 where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
+
+instance ToMarkup Word64 where
     toMarkup = string . show
     {-# INLINE toMarkup #-}
 
@@ -174,6 +196,14 @@ instance ToValue Int where
     toValue = stringValue . show
     {-# INLINE toValue #-}
 
+instance ToValue Int32 where
+    toValue = stringValue . show
+    {-# INLINE toValue #-}
+
+instance ToValue Int64 where
+    toValue = stringValue . show
+    {-# INLINE toValue #-}
+
 instance ToValue Char where
     toValue = stringValue . return
     {-# INLINE toValue #-}
@@ -191,5 +221,17 @@ instance ToValue Float where
     {-# INLINE toValue #-}
 
 instance ToValue Double where
+    toValue = stringValue . show
+    {-# INLINE toValue #-}
+
+instance ToValue Word where
+    toValue = stringValue . show
+    {-# INLINE toValue #-}
+
+instance ToValue Word32 where
+    toValue = stringValue . show
+    {-# INLINE toValue #-}
+
+instance ToValue Word64 where
     toValue = stringValue . show
     {-# INLINE toValue #-}
