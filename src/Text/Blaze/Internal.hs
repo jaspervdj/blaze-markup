@@ -53,6 +53,7 @@ module Text.Blaze.Internal
       -- * Setting attributes
     , Attributable
     , (!)
+    , (!?)
 
       -- * Modifying Markup elements
     , contents
@@ -411,6 +412,19 @@ instance Attributable (MarkupM a) where
 instance Attributable (MarkupM a -> MarkupM b) where
     h ! f = (! f) . h
     {-# INLINE (!) #-}
+
+-- | Shorthand for setting an attribute depending on a conditional.
+--
+-- Example:
+--
+-- > p !? (isBig, A.class "big") $ "Hello"
+--
+-- Gives the same result as:
+--
+-- > (if isBig then p ! A.class "big" else p) "Hello"
+--
+(!?) :: Attributable h => h -> (Bool, Attribute) -> h
+(!?) h (c, a) = if c then h ! a else h
 
 -- | Mark HTML as external data. External data can be:
 --

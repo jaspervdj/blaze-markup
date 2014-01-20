@@ -35,6 +35,7 @@ tests = [ testProperty "left identity Monoid law"  monoidLeftIdentity
         , testProperty "well nested <>"            wellNestedBrackets
         , testProperty "unsafeByteString id"       unsafeByteStringId
 
+        , testCase     "conditional attributes"    conditionalAttributes
         , testCase     "contents 1"                contents1
         ]
 
@@ -113,6 +114,14 @@ wellNestedBrackets = wellNested False . LBC.unpack . renderUsingUtf8
         '<' -> if isOpen then False else wellNested True xs
         '>' -> if isOpen then wellNested False xs else False
         _   -> wellNested isOpen xs
+
+conditionalAttributes :: Assertion
+conditionalAttributes =
+    "<p class=\"foo\">Hello</p><p id=\"2nd\">World</p>" @=? renderUsingUtf8 html
+  where
+    html = do
+        p !? (4 > length [()], class_ "foo") $ "Hello"
+        p !? (null [()], class_ "bar") !? (True, id "2nd") $ "World"
 
 contents1 :: Assertion
 contents1 = "Hello World!" @=? renderUsingUtf8 (contents html)

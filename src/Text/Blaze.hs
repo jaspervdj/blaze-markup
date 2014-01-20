@@ -60,6 +60,7 @@ module Text.Blaze
 
       -- * Setting attributes
     , (!)
+    , (!?)
 
       -- * Modifiying Markup trees
     , contents

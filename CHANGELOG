@@ -1,3 +1,6 @@
+- 0.6.0.0
+    * Add the operator (!?) for nicely setting conditional attributes
+
 - 0.5.2.0
     * Provide ToHtml and ToValue instances for Int32, Int64, Word, Word32,
       and Word64
