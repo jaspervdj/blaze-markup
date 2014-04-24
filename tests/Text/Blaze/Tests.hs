@@ -1,16 +1,17 @@
 {-# LANGUAGE OverloadedStrings, FlexibleInstances, TypeSynonymInstances #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans        #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 module Text.Blaze.Tests
     ( tests
     ) where
 
-import Prelude hiding (div, id)
-import Data.Monoid (mempty)
+import Prelude hiding (div, id, null)
+import Data.Monoid (mempty, mappend)
 import Control.Monad (replicateM)
 import Control.Applicative ((<$>))
 import Data.Word (Word8)
 import Data.Char (ord)
-import Data.List (isInfixOf)
+import qualified Data.List as List
 
 import Test.Framework (Test)
 import Test.HUnit (Assertion, (@=?))
@@ -37,6 +38,8 @@ tests = [ testProperty "left identity Monoid law"  monoidLeftIdentity
 
         , testCase     "conditional attributes"    conditionalAttributes
         , testCase     "contents 1"                contents1
+        , testCase     "empty 1"                   empty1
+        , testCase     "empty 2"                   empty2
         ]
 
 -- | The left identity Monoid law.
@@ -101,7 +104,7 @@ unsafeByteStringId ws =
 -- | Check if the "</" sequence does not appear in @<script>@ or @<style>@ tags.
 --
 externalEndSequence :: String -> Bool
-externalEndSequence = not . isInfixOf "</" . LBC.unpack
+externalEndSequence = not . List.isInfixOf "</" . LBC.unpack
                     . renderUsingUtf8 . external . string
 
 -- | Check that the "<>" characters are well-nested.
@@ -121,7 +124,7 @@ conditionalAttributes =
   where
     html = do
         p !? (4 > length [()], class_ "foo") $ "Hello"
-        p !? (null [()], class_ "bar") !? (True, id "2nd") $ "World"
+        p !? (List.null [()], class_ "bar") !? (True, id "2nd") $ "World"
 
 contents1 :: Assertion
 contents1 = "Hello World!" @=? renderUsingUtf8 (contents html)
@@ -131,6 +134,21 @@ contents1 = "Hello World!" @=? renderUsingUtf8 (contents html)
         p ! id "para" $ "Hello "
         img ! name "An image"
         p "World!"
+
+empty1 :: Assertion
+empty1 = True @=? null html
+  where
+    html :: Markup
+    html = do
+        ""
+        ""
+        mempty
+
+empty2 :: Assertion
+empty2 = False @=? null html
+  where
+    html :: Markup
+    html = "" `mappend` "" `mappend` p "a"
 
 -- Show instance for the HTML type, so we can debug.
 --
@@ -157,7 +175,7 @@ instance Arbitrary Markup where
 --
 arbitraryMarkup :: Int       -- ^ Maximum depth.
               -> Gen Markup  -- ^ Resulting arbitrary HTML snippet.
-arbitraryMarkup depth = do 
+arbitraryMarkup depth = do
     -- Choose the size (width) of this element.
     size <- choose (0, 3)
 

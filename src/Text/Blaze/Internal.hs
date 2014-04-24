@@ -58,10 +58,15 @@ module Text.Blaze.Internal
       -- * Modifying Markup elements
     , contents
     , external
+
+      -- * Querying Markup elements
+    , null
     ) where
 
+import Prelude hiding (null)
 import Data.Monoid (Monoid, mappend, mempty, mconcat)
 import Unsafe.Coerce (unsafeCoerce)
+import qualified Data.List as List
 
 import Data.ByteString.Char8 (ByteString)
 import Data.Text (Text)
@@ -463,3 +468,29 @@ contents (Append c1 c2)             = Append (contents c1) (contents c2)
 contents (AddAttribute _ _ _ c)     = contents c
 contents (AddCustomAttribute _ _ c) = contents c
 contents _                          = Empty
+
+-- | Check if a 'Markup' value is completely empty (renders to the empty
+-- string).
+null :: MarkupM a -> Bool
+null markup = case markup of
+    Parent _ _ _ _           -> False
+    CustomParent _ _         -> False
+    Leaf _ _ _               -> False
+    CustomLeaf _ _           -> False
+    Content c                -> emptyChoiceString c
+    Append c1 c2             -> null c1 && null c2
+    AddAttribute _ _ _ c     -> null c
+    AddCustomAttribute _ _ c -> null c
+    Empty                    -> True
+  where
+    emptyChoiceString cs = case cs of
+        Static ss                -> emptyStaticString ss
+        String s                 -> List.null s
+        Text t                   -> T.null t
+        ByteString bs            -> B.null bs
+        PreEscaped c             -> emptyChoiceString c
+        External c               -> emptyChoiceString c
+        AppendChoiceString c1 c2 -> emptyChoiceString c1 && emptyChoiceString c2
+        EmptyChoiceString        -> True
+
+    emptyStaticString = B.null . getUtf8ByteString
