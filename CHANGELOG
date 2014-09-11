@@ -1,3 +1,6 @@
+- 0.6.1.1
+    * Bump `text` dependency to allow 1.2
+
 - 0.6.1.0
     * Add the `null` query to Text.Blaze.Internal.
 
