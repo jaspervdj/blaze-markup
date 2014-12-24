@@ -64,6 +64,7 @@ module Text.Blaze.Internal
     ) where
 
 import Prelude hiding (null)
+import Control.Applicative (Applicative (..))
 import Data.Monoid (Monoid, mappend, mempty, mconcat)
 import Unsafe.Coerce (unsafeCoerce)
 import qualified Data.List as List
@@ -162,6 +163,16 @@ instance Monoid a => Monoid (MarkupM a) where
 instance Functor MarkupM where
     -- Safe because it does not contain a value anyway
     fmap _ = unsafeCoerce
+
+instance Applicative MarkupM where
+    pure _ = Empty
+    {-# INLINE pure #-}
+    (<*>) = Append
+    {-# INLINE (<*>) #-}
+    (*>) = Append
+    {-# INLINE (*>) #-}
+    (<*) = Append
+    {-# INLINE (<*) #-}
 
 instance Monad MarkupM where
     return _ = Empty

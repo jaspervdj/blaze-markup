@@ -8,10 +8,11 @@ module Text.Blaze.Tests
 import Prelude hiding (div, id, null)
 import Data.Monoid (mempty, mappend)
 import Control.Monad (replicateM)
-import Control.Applicative ((<$>))
+import Control.Applicative (Applicative (..), (<$>))
 import Data.Word (Word8)
 import Data.Char (ord)
 import qualified Data.List as List
+import qualified Prelude as Prelude
 
 import Test.Framework (Test)
 import Test.HUnit (Assertion, (@=?))
@@ -30,6 +31,7 @@ tests = [ testProperty "left identity Monoid law"  monoidLeftIdentity
         , testProperty "right identity Monoid law" monoidRightIdentity
         , testProperty "associativity Monoid law"  monoidAssociativity
         , testProperty "mconcat Monoid law"        monoidConcat
+        , testProperty "identity Applicative law"  applicativeIdentity
         , testProperty "post escaping characters"  postEscapingCharacters
         , testProperty "valid UTF-8"               isValidUtf8
         , testProperty "external </ sequence"      externalEndSequence
@@ -61,6 +63,11 @@ monoidAssociativity x y z = (x >> (y >> z)) == ((x >> y) >> z)
 --
 monoidConcat :: [Markup] -> Bool
 monoidConcat xs = sequence_ xs == foldr (>>) (return ()) xs
+
+-- | Applicative identity law.
+--
+applicativeIdentity :: Markup -> Bool
+applicativeIdentity x = (pure Prelude.id <*> x) == x
 
 -- | Escaped content cannot contain certain characters.
 --
