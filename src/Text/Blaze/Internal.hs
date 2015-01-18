@@ -36,6 +36,13 @@ module Text.Blaze.Internal
     , unsafeByteString
     , unsafeLazyByteString
 
+      -- * Comments
+    , textComment
+    , lazyTextComment
+    , stringComment
+    , unsafeByteStringComment
+    , unsafeLazyByteStringComment
+
       -- * Converting values to tags.
     , textTag
     , stringTag
@@ -137,6 +144,9 @@ data MarkupM a
     | CustomLeaf ChoiceString Bool
     -- | HTML content
     | Content ChoiceString
+    -- | HTML comment. Note: you should wrap the 'ChoiceString' in a
+    -- 'PreEscaped'.
+    | Comment ChoiceString
     -- | Concatenation of two HTML pieces
     | forall b c. Append (MarkupM b) (MarkupM c)
     -- | Add an attribute to the inner HTML. Raw key, key, value, HTML to
@@ -328,6 +338,37 @@ unsafeLazyByteString :: BL.ByteString  -- ^ Value to insert
 unsafeLazyByteString = mconcat . map unsafeByteString . BL.toChunks
 {-# INLINE unsafeLazyByteString #-}
 
+-- | Create a comment from a 'Text' value.
+-- The text should not contain @"--"@.
+-- This is not checked by the library.
+textComment :: Text -> Markup
+textComment = Comment . PreEscaped . Text
+
+-- | Create a comment from a 'LT.Text' value.
+-- The text should not contain @"--"@.
+-- This is not checked by the library.
+lazyTextComment :: LT.Text -> Markup
+lazyTextComment = Comment . mconcat . map (PreEscaped . Text) . LT.toChunks
+
+-- | Create a comment from a 'String' value.
+-- The text should not contain @"--"@.
+-- This is not checked by the library.
+stringComment :: String -> Markup
+stringComment = Comment . PreEscaped . String
+
+-- | Create a comment from a 'ByteString' value.
+-- The text should not contain @"--"@.
+-- This is not checked by the library.
+unsafeByteStringComment :: ByteString -> Markup
+unsafeByteStringComment = Comment . PreEscaped . ByteString
+
+-- | Create a comment from a 'BL.ByteString' value.
+-- The text should not contain @"--"@.
+-- This is not checked by the library.
+unsafeLazyByteStringComment :: BL.ByteString -> Markup
+unsafeLazyByteStringComment =
+    Comment . mconcat . map (PreEscaped . ByteString) . BL.toChunks
+
 -- | Create a 'Tag' from some 'Text'.
 --
 textTag :: Text  -- ^ Text to create a tag from
@@ -489,6 +530,7 @@ null markup = case markup of
     Leaf _ _ _               -> False
     CustomLeaf _ _           -> False
     Content c                -> emptyChoiceString c
+    Comment c                -> emptyChoiceString c
     Append c1 c2             -> null c1 && null c2
     AddAttribute _ _ _ c     -> null c
     AddCustomAttribute _ _ c -> null c

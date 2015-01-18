@@ -59,7 +59,7 @@ fromChoiceString EmptyChoiceString = id
 renderString :: Markup    -- ^ Markup to render
              -> String  -- ^ String to append
              -> String  -- ^ Resulting String
-renderString = go id 
+renderString = go id
   where
     go :: (String -> String) -> MarkupM b -> String -> String
     go attrs (Parent _ open close content) =
@@ -77,6 +77,8 @@ renderString = go id
         (' ' :) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
         ('"' :) .  attrs
     go _ (Content content) = fromChoiceString content
+    go _ (Comment comment) =
+        ("<!-- " ++) . fromChoiceString comment . (" -->" ++)
     go attrs (Append h1 h2) = go attrs h1 . go attrs h2
     go _ Empty = id
     {-# NOINLINE go #-}

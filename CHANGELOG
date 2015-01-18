@@ -1,3 +1,6 @@
+- 0.6.3.0
+    * Add combinators to insert HTML comments
+
 - 0.6.2.0
     * Add `Applicative` instance for `MarkupM`
 

@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 -- | BlazeMarkup is a markup combinator library. It provides a way to embed
 -- markup languages like HTML and SVG in Haskell in an efficient and convenient
 -- way, with a light-weight syntax.
@@ -46,8 +48,21 @@ module Text.Blaze
 
       -- * Converting values to Markup.
     , ToMarkup (..)
+    , text
+    , preEscapedText
+    , lazyText
+    , preEscapedLazyText
+    , string
+    , preEscapedString
     , unsafeByteString
     , unsafeLazyByteString
+
+      -- * Comments
+    , textComment
+    , lazyTextComment
+    , stringComment
+    , unsafeByteStringComment
+    , unsafeLazyByteStringComment
 
       -- * Creating tags.
     , textTag
@@ -55,6 +70,12 @@ module Text.Blaze
 
       -- * Converting values to attribute values.
     , ToValue (..)
+    , textValue
+    , preEscapedTextValue
+    , lazyTextValue
+    , preEscapedLazyTextValue
+    , stringValue
+    , preEscapedStringValue
     , unsafeByteStringValue
     , unsafeLazyByteStringValue
 
@@ -66,14 +87,14 @@ module Text.Blaze
     , contents
     ) where
 
-import Data.Monoid (mconcat)
-import Data.Int (Int32, Int64)
-import Data.Word (Word, Word32, Word64)
+import           Data.Int            (Int32, Int64)
+import           Data.Monoid         (mconcat)
+import           Data.Word           (Word, Word32, Word64)
 
-import Data.Text (Text)
-import qualified Data.Text.Lazy as LT
+import           Data.Text           (Text)
+import qualified Data.Text.Lazy      as LT
 
-import Text.Blaze.Internal
+import           Text.Blaze.Internal
 
 -- | Class allowing us to use a single function for Markup values
 --

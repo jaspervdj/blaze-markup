@@ -23,6 +23,7 @@ import qualified Data.ByteString as SB
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as LBC
 
+import Text.Blaze
 import Text.Blaze.Internal
 import Text.Blaze.Tests.Util
 
@@ -42,6 +43,7 @@ tests = [ testProperty "left identity Monoid law"  monoidLeftIdentity
         , testCase     "contents 1"                contents1
         , testCase     "empty 1"                   empty1
         , testCase     "empty 2"                   empty2
+        , testCase     "comment 1"                 comment1
         ]
 
 -- | The left identity Monoid law.
@@ -139,6 +141,7 @@ contents1 = "Hello World!" @=? renderUsingUtf8 (contents html)
     html :: Markup
     html = div $ do
         p ! id "para" $ "Hello "
+        stringComment "Test test"
         img ! name "An image"
         p "World!"
 
@@ -156,6 +159,15 @@ empty2 = False @=? null html
   where
     html :: Markup
     html = "" `mappend` "" `mappend` p "a"
+
+comment1 :: Assertion
+comment1 = preEscapedString "<div>Hello <!-- Test --> World!</div>" @=? html
+  where
+    html :: Markup
+    html = div $ do
+        "Hello "
+        stringComment "Test"
+        " World!"
 
 -- Show instance for the HTML type, so we can debug.
 --
