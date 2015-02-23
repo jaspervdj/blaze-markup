@@ -1,3 +1,6 @@
+- 0.7.0.0
+    * Depend on blaze-builder 0.4
+
 - 0.6.3.0
     * Add combinators to insert HTML comments
 

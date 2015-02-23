@@ -10,7 +10,7 @@ import Data.Monoid (mempty, mappend)
 import Control.Monad (replicateM)
 import Control.Applicative (Applicative (..), (<$>))
 import Data.Word (Word8)
-import Data.Char (ord)
+import Data.Char (ord, isControl)
 import qualified Data.List as List
 import qualified Prelude as Prelude
 
@@ -225,11 +225,14 @@ arbitraryMarkup depth = do
 
     -- Generate arbitrary string element.
     arbitraryString = do
-        s <- arbitrary
+        s <- genString
         return $ string s
 
     -- Generate an arbitrary HTML attribute.
     arbitraryAttribute = do
         attr <- elements [id, class_, name]
-        value <- arbitrary
+        value <- genString
         return $ attr $ stringValue value
+
+    -- Don't use control characters
+    genString = filter (not . isControl) <$> arbitrary
