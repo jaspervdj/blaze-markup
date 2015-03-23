@@ -1,4 +1,7 @@
-* 0.7.0.1
+- 0.7.0.2
+    * Relax `blaze-builder` dependency to allow 0.3
+
+- 0.7.0.1
     * Bump `QuickCheck` dependency to allow 2.8
 
 - 0.7.0.0
