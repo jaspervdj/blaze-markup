@@ -76,6 +76,9 @@ renderString = go
     go (AddCustomAttribute key value h) = flip go_attrs h $
         (' ' :) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
         ('"' :)
+    go (AddStyle _ key value h) = id
+    go (AddCustomStyle key value h) = id
+    go (AddClass key h) = id 
     go (Content content) = fromChoiceString content
     go (Comment comment) =
         ("<!-- " ++) . fromChoiceString comment . (" -->" ++)
@@ -98,6 +101,9 @@ renderString = go
     go_attrs attrs (AddCustomAttribute key value h) = flip go_attrs h $
         (' ' :) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
         ('"' :) .  attrs
+    go_attrs attrs (AddStyle _ key value h) = id
+    go_attrs attrs (AddCustomStyle key value h) = id
+    go_attrs attrs (AddClass key h) = id 
     go_attrs _ (Content content) = fromChoiceString content
     go_attrs _ (Comment comment) =
         ("<!-- " ++) . fromChoiceString comment . (" -->" ++)

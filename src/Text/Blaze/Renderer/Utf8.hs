@@ -80,6 +80,9 @@ renderMarkupBuilder = go
                  `mappend` B.fromByteString "=\""
                  `mappend` fromChoiceString value
                  `mappend` B.fromChar '"') h
+    go (AddStyle _ key value h) = mempty
+    go (AddCustomStyle key value h) = mempty
+    go (AddClass key h) = mempty 
     go (Content content)  = fromChoiceString content
     go (Comment comment)  =
         B.fromByteString "<!-- "
@@ -126,6 +129,9 @@ renderMarkupBuilder = go
             `mappend` fromChoiceString value
             `mappend` B.fromChar '"'
             `mappend` attrs) h
+    go_attrs attrs (AddStyle _ key value h) = mempty
+    go_attrs attrs (AddCustomStyle key value h) = mempty
+    go_attrs attrs (AddClass key h) = mempty 
     go_attrs _ (Content content)  = fromChoiceString content
     go_attrs _ (Comment comment)  =
         B.fromByteString "<!-- "

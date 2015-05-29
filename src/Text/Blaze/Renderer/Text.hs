@@ -114,6 +114,9 @@ renderMarkupBuilderWith d = go
                  `mappend` B.fromText "=\""
                  `mappend` fromChoiceString d value
                  `mappend` B.singleton '"') h
+    go (AddStyle _ key value h) = mempty
+    go (AddCustomStyle key value h) = mempty
+    go (AddClass key h) = mempty 
     go (Content content)  = fromChoiceString d content
     go (Comment comment)  =
         B.fromText "<!-- "
@@ -160,6 +163,9 @@ renderMarkupBuilderWith d = go
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
             `mappend` attrs) h
+    go_attrs attrs (AddStyle _ key value h) = mempty
+    go_attrs attrs (AddCustomStyle key value h) = mempty
+    go_attrs attrs (AddClass key h) = mempty 
     go_attrs _ (Content content)  = fromChoiceString d content
     go_attrs _ (Comment comment)  =
         B.fromText "<!-- "
