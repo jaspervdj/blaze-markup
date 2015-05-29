@@ -9,6 +9,7 @@ local
 cabal.sandbox.config
 cabal.config
 
+report.html
 TestSuite.tix
 .hpc
 hpc

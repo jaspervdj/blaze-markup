@@ -47,53 +47,93 @@ fromChoiceString EmptyChoiceString = mempty
 --
 renderMarkupBuilder, renderHtmlBuilder :: Markup     -- ^ Markup to render
                   -> Builder  -- ^ Resulting builder
-renderMarkupBuilder = go mempty
+renderMarkupBuilder = go
   where
-    go :: Builder -> MarkupM b -> Builder
-    go attrs (Parent _ open close content) =
+    go :: MarkupM b -> Builder
+    go (Parent _ open close content) =
+        B.copyByteString (getUtf8ByteString open)
+            `mappend` B.fromChar '>'
+            `mappend` go content
+            `mappend` B.copyByteString (getUtf8ByteString close)
+    go (CustomParent tag content) =
+        B.fromChar '<'
+            `mappend` fromChoiceString tag
+            `mappend` B.fromChar '>'
+            `mappend` go content
+            `mappend` B.fromByteString "</"
+            `mappend` fromChoiceString tag
+            `mappend` B.fromChar '>'
+    go (Leaf _ begin end) =
+        B.copyByteString (getUtf8ByteString begin)
+            `mappend` B.copyByteString (getUtf8ByteString end)
+    go (CustomLeaf tag close) =
+        B.fromChar '<'
+            `mappend` fromChoiceString tag
+            `mappend` (if close then B.fromByteString " />" else B.fromChar '>')
+    go (AddAttribute _ key value h) =
+        go_attrs (B.copyByteString (getUtf8ByteString key)
+                 `mappend` fromChoiceString value
+                 `mappend` B.fromChar '"') h
+    go (AddCustomAttribute key value h) =
+        go_attrs (B.fromChar ' '
+                 `mappend` fromChoiceString key
+                 `mappend` B.fromByteString "=\""
+                 `mappend` fromChoiceString value
+                 `mappend` B.fromChar '"') h
+    go (Content content)  = fromChoiceString content
+    go (Comment comment)  =
+        B.fromByteString "<!-- "
+            `mappend` fromChoiceString comment
+            `mappend` B.fromByteString " -->"
+    go (Append h1 h2) = go h1 `mappend` go h2
+    go Empty              = mempty
+    {-# NOINLINE go #-}
+
+    go_attrs :: Builder -> MarkupM b -> Builder
+    go_attrs attrs (Parent _ open close content) =
         B.copyByteString (getUtf8ByteString open)
             `mappend` attrs
             `mappend` B.fromChar '>'
-            `mappend` go mempty content
+            `mappend` go content
             `mappend` B.copyByteString (getUtf8ByteString close)
-    go attrs (CustomParent tag content) =
+    go_attrs attrs (CustomParent tag content) =
         B.fromChar '<'
             `mappend` fromChoiceString tag
             `mappend` attrs
             `mappend` B.fromChar '>'
-            `mappend` go mempty content
+            `mappend` go content
             `mappend` B.fromByteString "</"
             `mappend` fromChoiceString tag
             `mappend` B.fromChar '>'
-    go attrs (Leaf _ begin end) =
+    go_attrs attrs (Leaf _ begin end) =
         B.copyByteString (getUtf8ByteString begin)
             `mappend` attrs
             `mappend` B.copyByteString (getUtf8ByteString end)
-    go attrs (CustomLeaf tag close) =
+    go_attrs attrs (CustomLeaf tag close) =
         B.fromChar '<'
             `mappend` fromChoiceString tag
             `mappend` attrs
             `mappend` (if close then B.fromByteString " />" else B.fromChar '>')
-    go attrs (AddAttribute _ key value h) =
-        go (B.copyByteString (getUtf8ByteString key)
+    go_attrs attrs (AddAttribute _ key value h) =
+        go_attrs (B.copyByteString (getUtf8ByteString key)
             `mappend` fromChoiceString value
             `mappend` B.fromChar '"'
             `mappend` attrs) h
-    go attrs (AddCustomAttribute key value h) =
-        go (B.fromChar ' '
+    go_attrs attrs (AddCustomAttribute key value h) =
+        go_attrs (B.fromChar ' '
             `mappend` fromChoiceString key
             `mappend` B.fromByteString "=\""
             `mappend` fromChoiceString value
             `mappend` B.fromChar '"'
             `mappend` attrs) h
-    go _ (Content content)  = fromChoiceString content
-    go _ (Comment comment)  =
+    go_attrs _ (Content content)  = fromChoiceString content
+    go_attrs _ (Comment comment)  =
         B.fromByteString "<!-- "
             `mappend` fromChoiceString comment
             `mappend` B.fromByteString " -->"
-    go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
-    go _ Empty              = mempty
-    {-# NOINLINE go #-}
+    go_attrs attrs (Append h1 h2) = go_attrs attrs h1 `mappend` go_attrs attrs h2
+    go_attrs _ Empty              = mempty
+    {-# NOINLINE go_attrs #-}
 {-# INLINE renderMarkupBuilder #-}
 
 renderHtmlBuilder = renderMarkupBuilder
