@@ -45,6 +45,8 @@ module Text.Blaze
       -- * Creating attributes.
     , dataAttribute
     , customAttribute
+    , customCssStyle
+    , cssClass
 
       -- * Converting values to Markup.
     , ToMarkup (..)
