@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving, Rank2Types,
              FlexibleInstances, ExistentialQuantification,
-             DeriveDataTypeable #-}
+             DeriveDataTypeable, CPP #-}
 -- | The BlazeMarkup core, consisting of functions that offer the power to
 -- generate custom markup elements. It also offers user-centric functions,
 -- which are exposed through 'Text.Blaze'.
@@ -71,10 +71,13 @@ module Text.Blaze.Internal
     ) where
 
 import Prelude hiding (null)
-import Control.Applicative (Applicative (..))
-import Data.Monoid (Monoid, mappend, mempty, mconcat)
 import Unsafe.Coerce (unsafeCoerce)
 import qualified Data.List as List
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative (Applicative (..))
+import Data.Monoid (Monoid, mappend, mempty, mconcat)
+#endif
 
 import Data.ByteString.Char8 (ByteString)
 import Data.Text (Text)

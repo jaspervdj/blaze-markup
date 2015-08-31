@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP, OverloadedStrings #-}
 module Text.Blaze.Renderer.Utf8
     ( renderMarkupBuilder
     , renderMarkup
@@ -8,7 +8,9 @@ module Text.Blaze.Renderer.Utf8
     , renderHtmlToByteStringIO
     ) where
 
+#if !MIN_VERSION_base(4,8,0)
 import Data.Monoid (mappend, mempty)
+#endif
 import Data.List (isInfixOf)
 
 import qualified Data.ByteString.Lazy as L
