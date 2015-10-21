@@ -245,7 +245,7 @@ attribute rawKey key value = Attribute $
 --
 -- > <p data-foo="bar">Hello.</p>
 --
--- We support this in BlazeMarkup using this funcion. The above fragment could
+-- We support this in BlazeMarkup using this function. The above fragment could
 -- be described using BlazeMarkup with:
 --
 -- > p ! dataAttribute "foo" "bar" $ "Hello."
