@@ -31,6 +31,8 @@ module Text.Blaze.Internal
     , preEscapedText
     , lazyText
     , preEscapedLazyText
+    , textBuilder
+    , preEscapedTextBuilder
     , string
     , preEscapedString
     , unsafeByteString
@@ -52,6 +54,8 @@ module Text.Blaze.Internal
     , preEscapedTextValue
     , lazyTextValue
     , preEscapedLazyTextValue
+    , textBuilderValue
+    , preEscapedTextBuilderValue
     , stringValue
     , preEscapedStringValue
     , unsafeByteStringValue
@@ -85,6 +89,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Builder as LTB
 
 -- | A static string that supports efficient output to all possible backends.
 --
@@ -303,6 +308,21 @@ lazyText = mconcat . map text . LT.toChunks
 preEscapedLazyText :: LT.Text  -- ^ Text to insert
                    -> Markup   -- ^ Resulting HTML fragment
 preEscapedLazyText = mconcat . map preEscapedText . LT.toChunks
+{-# INLINE preEscapedLazyText #-}
+
+-- | A variant of 'text' for text 'LTB.Builder'.
+--
+textBuilder :: LTB.Builder -- ^ Text to insert
+            -> Markup      -- ^ Resulting HTML fragment
+textBuilder = lazyText . LTB.toLazyText
+{-# INLINE textBuilder #-}
+
+-- | A variant of 'preEscapedText' for lazy 'LT.Text'
+--
+preEscapedTextBuilder :: LTB.Builder -- ^ Text to insert
+                      -> Markup      -- ^ Resulting HTML fragment
+preEscapedTextBuilder = preEscapedLazyText . LTB.toLazyText
+{-# INLINE preEscapedTextBuilder #-}
 
 -- | Create an HTML snippet from a 'String'.
 --
@@ -408,6 +428,20 @@ preEscapedLazyTextValue :: LT.Text         -- ^ The actual value
                         -> AttributeValue  -- ^ Resulting attribute value
 preEscapedLazyTextValue = mconcat . map preEscapedTextValue . LT.toChunks
 {-# INLINE preEscapedLazyTextValue #-}
+
+-- | A variant of 'textValue' for text 'LTB.Builder'
+--
+textBuilderValue :: LTB.Builder    -- ^ The actual value
+                 -> AttributeValue -- ^ Resulting attribute value
+textBuilderValue = lazyTextValue . LTB.toLazyText
+{-# INLINE textBuilderValue #-}
+
+-- | A variant of 'preEscapedTextValue' for text 'LTB.Builder'
+--
+preEscapedTextBuilderValue :: LTB.Builder    -- ^ The actual value
+                           -> AttributeValue -- ^ Resulting attribute value
+preEscapedTextBuilderValue = preEscapedLazyTextValue . LTB.toLazyText
+{-# INLINE preEscapedTextBuilderValue #-}
 
 -- | Create an attribute value from a 'String'.
 --

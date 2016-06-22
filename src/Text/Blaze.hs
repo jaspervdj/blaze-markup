@@ -93,6 +93,7 @@ import           Data.Word           (Word, Word32, Word64)
 
 import           Data.Text           (Text)
 import qualified Data.Text.Lazy      as LT
+import qualified Data.Text.Lazy.Builder as LTB
 
 import           Text.Blaze.Internal
 
@@ -127,6 +128,12 @@ instance ToMarkup LT.Text where
     toMarkup = lazyText
     {-# INLINE toMarkup #-}
     preEscapedToMarkup = preEscapedLazyText
+    {-# INLINE preEscapedToMarkup #-}
+
+instance ToMarkup LTB.Builder where
+    toMarkup = textBuilder
+    {-# INLINE toMarkup #-}
+    preEscapedToMarkup = preEscapedTextBuilder
     {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup String where
@@ -206,6 +213,12 @@ instance ToValue LT.Text where
     toValue = lazyTextValue
     {-# INLINE toValue #-}
     preEscapedToValue = preEscapedLazyTextValue
+    {-# INLINE preEscapedToValue #-}
+
+instance ToValue LTB.Builder where
+    toValue = textBuilderValue
+    {-# INLINE toValue #-}
+    preEscapedToValue = preEscapedTextBuilderValue
     {-# INLINE preEscapedToValue #-}
 
 instance ToValue String where
