@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving, Rank2Types,
              FlexibleInstances, ExistentialQuantification,
-             DeriveDataTypeable #-}
+             DeriveDataTypeable, CPP #-}
 -- | The BlazeMarkup core, consisting of functions that offer the power to
 -- generate custom markup elements. It also offers user-centric functions,
 -- which are exposed through 'Text.Blaze'.
@@ -91,6 +91,10 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.Builder as LTB
 
+#if MIN_VERSION_base(4,9,0)
+import Data.Semigroup (Semigroup)
+#endif
+
 -- | A static string that supports efficient output to all possible backends.
 --
 data StaticString = StaticString
@@ -167,13 +171,17 @@ data MarkupM a
 --
 type Markup = MarkupM ()
 
-instance Monoid a => Monoid (MarkupM a) where
+instance Monoid (MarkupM a) where
     mempty = Empty
     {-# INLINE mempty #-}
     mappend x y = Append x y
     {-# INLINE mappend #-}
     mconcat = foldr Append Empty
     {-# INLINE mconcat #-}
+
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup (MarkupM a) where
+#endif
 
 instance Functor MarkupM where
     -- Safe because it does not contain a value anyway
