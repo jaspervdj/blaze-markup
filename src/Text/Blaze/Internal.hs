@@ -167,7 +167,7 @@ data MarkupM a
 --
 type Markup = MarkupM ()
 
-instance Monoid a => Monoid (MarkupM a) where
+instance Monoid (MarkupM a) where
     mempty = Empty
     {-# INLINE mempty #-}
     mappend x y = Append x y
