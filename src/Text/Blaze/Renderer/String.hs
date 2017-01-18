@@ -59,29 +59,52 @@ fromChoiceString EmptyChoiceString = id
 renderString :: Markup    -- ^ Markup to render
              -> String  -- ^ String to append
              -> String  -- ^ Resulting String
-renderString = go id
+renderString = go
   where
-    go :: (String -> String) -> MarkupM b -> String -> String
-    go attrs (Parent _ open close content) =
-        getString open . attrs . ('>' :) . go id content . getString close
-    go attrs (CustomParent tag content) =
-        ('<' :) . fromChoiceString tag . attrs . ('>' :) .  go id content .
+    go :: MarkupM b -> String -> String
+    go (Parent _ open close content) =
+        getString open . ('>' :) . go content . getString close
+    go (CustomParent tag content) =
+        ('<' :) . fromChoiceString tag . ('>' :) .  go content .
         ("</" ++) . fromChoiceString tag . ('>' :)
-    go attrs (Leaf _ begin end) = getString begin . attrs . getString end
-    go attrs (CustomLeaf tag close) =
+    go (Leaf _ begin end) = getString begin . getString end
+    go (CustomLeaf tag close) =
+        ('<' :) . fromChoiceString tag .
+        (if close then (" />" ++) else ('>' :))
+    go (AddAttribute _ key value h) = flip go_attrs h $
+        getString key . fromChoiceString value . ('"' :)
+    go (AddCustomAttribute key value h) = flip go_attrs h $
+        (' ' :) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
+        ('"' :)
+    go (Content content) = fromChoiceString content
+    go (Comment comment) =
+        ("<!-- " ++) . fromChoiceString comment . (" -->" ++)
+    go (Append h1 h2) = go h1 . go h2
+    go Empty = id
+    {-# NOINLINE go #-}
+
+    go_attrs :: (String -> String) -> MarkupM b -> String -> String
+    go_attrs attrs (Parent _ open close content) =
+        getString open . attrs . ('>' :) . go content . getString close
+    go_attrs attrs (CustomParent tag content) =
+        ('<' :) . fromChoiceString tag . attrs . ('>' :) .  go content .
+        ("</" ++) . fromChoiceString tag . ('>' :)
+    go_attrs attrs (Leaf _ begin end) = getString begin . attrs . getString end
+    go_attrs attrs (CustomLeaf tag close) =
         ('<' :) . fromChoiceString tag . attrs .
         (if close then (" />" ++) else ('>' :))
-    go attrs (AddAttribute _ key value h) = flip go h $
+    go_attrs attrs (AddAttribute _ key value h) = flip go_attrs h $
         getString key . fromChoiceString value . ('"' :) . attrs
-    go attrs (AddCustomAttribute key value h) = flip go h $
+    go_attrs attrs (AddCustomAttribute key value h) = flip go_attrs h $
         (' ' :) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
         ('"' :) .  attrs
-    go _ (Content content) = fromChoiceString content
-    go _ (Comment comment) =
+    go_attrs _ (Content content) = fromChoiceString content
+    go_attrs _ (Comment comment) =
         ("<!-- " ++) . fromChoiceString comment . (" -->" ++)
-    go attrs (Append h1 h2) = go attrs h1 . go attrs h2
-    go _ Empty = id
-    {-# NOINLINE go #-}
+    go_attrs attrs (Append h1 h2) = go_attrs attrs h1 . go_attrs attrs h2
+    go_attrs _ Empty = id
+    {-# NOINLINE go_attrs #-}
+
 {-# INLINE renderString #-}
 
 -- | Render markup to a lazy 'String'.

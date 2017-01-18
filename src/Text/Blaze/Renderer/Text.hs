@@ -81,53 +81,93 @@ renderHtmlBuilder = renderMarkupBuilder
 renderMarkupBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
                         -> Markup                -- ^ Markup to render
                         -> Builder               -- ^ Resulting builder
-renderMarkupBuilderWith d = go mempty
+renderMarkupBuilderWith d = go
   where
-    go :: Builder -> MarkupM b -> Builder
-    go attrs (Parent _ open close content) =
+    go :: MarkupM b -> Builder
+    go (Parent _ open close content) =
+        B.fromText (getText open)
+            `mappend` B.singleton '>'
+            `mappend` go content
+            `mappend` B.fromText (getText close)
+    go (CustomParent tag content) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` B.singleton '>'
+            `mappend` go content
+            `mappend` B.fromText "</"
+            `mappend` fromChoiceString d tag
+            `mappend` B.singleton '>'
+    go (Leaf _ begin end) =
+        B.fromText (getText begin)
+            `mappend` B.fromText (getText end)
+    go (CustomLeaf tag close) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` (if close then B.fromText " />" else B.singleton '>')
+    go (AddAttribute _ key value h) =
+        go_attrs (B.fromText (getText key)
+                 `mappend` fromChoiceString d value
+                 `mappend` B.singleton '"') h
+    go (AddCustomAttribute key value h) =
+        go_attrs (B.singleton ' '
+                 `mappend` fromChoiceString d key
+                 `mappend` B.fromText "=\""
+                 `mappend` fromChoiceString d value
+                 `mappend` B.singleton '"') h
+    go (Content content)  = fromChoiceString d content
+    go (Comment comment)  =
+        B.fromText "<!-- "
+            `mappend` fromChoiceString d comment
+            `mappend` " -->"
+    go (Append h1 h2) = go h1 `mappend` go h2
+    go Empty              = mempty
+    {-# NOINLINE go #-}
+
+    go_attrs :: Builder -> MarkupM b -> Builder
+    go_attrs attrs (Parent _ open close content) =
         B.fromText (getText open)
             `mappend` attrs
             `mappend` B.singleton '>'
-            `mappend` go mempty content
+            `mappend` go content
             `mappend` B.fromText (getText close)
-    go attrs (CustomParent tag content) =
+    go_attrs attrs (CustomParent tag content) =
         B.singleton '<'
             `mappend` fromChoiceString d tag
             `mappend` attrs
             `mappend` B.singleton '>'
-            `mappend` go mempty content
+            `mappend` go content
             `mappend` B.fromText "</"
             `mappend` fromChoiceString d tag
             `mappend` B.singleton '>'
-    go attrs (Leaf _ begin end) =
+    go_attrs attrs (Leaf _ begin end) =
         B.fromText (getText begin)
             `mappend` attrs
             `mappend` B.fromText (getText end)
-    go attrs (CustomLeaf tag close) =
+    go_attrs attrs (CustomLeaf tag close) =
         B.singleton '<'
             `mappend` fromChoiceString d tag
             `mappend` attrs
             `mappend` (if close then B.fromText " />" else B.singleton '>')
-    go attrs (AddAttribute _ key value h) =
-        go (B.fromText (getText key)
+    go_attrs attrs (AddAttribute _ key value h) =
+        go_attrs (B.fromText (getText key)
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
             `mappend` attrs) h
-    go attrs (AddCustomAttribute key value h) =
-        go (B.singleton ' '
+    go_attrs attrs (AddCustomAttribute key value h) =
+        go_attrs (B.singleton ' '
             `mappend` fromChoiceString d key
             `mappend` B.fromText "=\""
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
             `mappend` attrs) h
-    go _ (Content content)  = fromChoiceString d content
-    go _ (Comment comment)  =
+    go_attrs _ (Content content)  = fromChoiceString d content
+    go_attrs _ (Comment comment)  =
         B.fromText "<!-- "
             `mappend` fromChoiceString d comment
             `mappend` " -->"
-    go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
-    go _ Empty              = mempty
-    {-# NOINLINE go #-}
+    go_attrs attrs (Append h1 h2) = go_attrs attrs h1 `mappend` go_attrs attrs h2
+    go_attrs _ Empty              = mempty
+    {-# NOINLINE go_attrs #-}
 {-# INLINE renderMarkupBuilderWith #-}
 
 renderHtmlBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
