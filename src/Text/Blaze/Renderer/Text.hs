@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, GADTs #-}
 -- | A renderer that produces a lazy 'L.Text' value, using the Text Builder.
 --
 module Text.Blaze.Renderer.Text
@@ -126,7 +126,7 @@ renderMarkupBuilderWith d = go mempty
             `mappend` fromChoiceString d comment
             `mappend` " -->"
     go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
-    go _ Empty              = mempty
+    go _ (Empty _)          = mempty
     {-# NOINLINE go #-}
 {-# INLINE renderMarkupBuilderWith #-}
 

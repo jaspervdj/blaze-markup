@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, GADTs #-}
 module Text.Blaze.Renderer.Utf8
     ( renderMarkupBuilder
     , renderMarkup
@@ -92,7 +92,7 @@ renderMarkupBuilder = go mempty
             `mappend` fromChoiceString comment
             `mappend` B.fromByteString " -->"
     go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
-    go _ Empty              = mempty
+    go _ (Empty _)          = mempty
     {-# NOINLINE go #-}
 {-# INLINE renderMarkupBuilder #-}
 
