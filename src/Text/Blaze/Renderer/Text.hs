@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP, OverloadedStrings #-}
 -- | A renderer that produces a lazy 'L.Text' value, using the Text Builder.
 --
 module Text.Blaze.Renderer.Text
@@ -12,7 +12,9 @@ module Text.Blaze.Renderer.Text
     , renderHtmlWith
     ) where
 
+#if !MIN_VERSION_base(4,8,0)
 import Data.Monoid (mappend, mempty)
+#endif
 import Data.List (isInfixOf)
 
 import Data.Text (Text)

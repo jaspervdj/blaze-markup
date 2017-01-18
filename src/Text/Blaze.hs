@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -88,8 +89,11 @@ module Text.Blaze
     ) where
 
 import           Data.Int            (Int32, Int64)
+#if !MIN_VERSION_base(4,8,0)
 import           Data.Monoid         (mconcat)
-import           Data.Word           (Word, Word32, Word64)
+import           Data.Word           (Word)
+#endif
+import           Data.Word           (Word32, Word64)
 
 import           Data.Text           (Text)
 import qualified Data.Text.Lazy      as LT

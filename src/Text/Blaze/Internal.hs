@@ -75,10 +75,13 @@ module Text.Blaze.Internal
     ) where
 
 import Prelude hiding (null)
-import Control.Applicative (Applicative (..))
-import Data.Monoid (Monoid, mappend, mempty, mconcat)
 import Unsafe.Coerce (unsafeCoerce)
 import qualified Data.List as List
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative (Applicative (..))
+import Data.Monoid (Monoid, mappend, mempty, mconcat)
+#endif
 
 import Data.ByteString.Char8 (ByteString)
 import Data.Text (Text)
