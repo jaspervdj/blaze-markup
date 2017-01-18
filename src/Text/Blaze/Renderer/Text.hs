@@ -81,53 +81,236 @@ renderHtmlBuilder = renderMarkupBuilder
 renderMarkupBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings
                         -> Markup                -- ^ Markup to render
                         -> Builder               -- ^ Resulting builder
-renderMarkupBuilderWith d = go mempty
+renderMarkupBuilderWith d = go
   where
-    go :: Builder -> MarkupM b -> Builder
-    go attrs (Parent _ open close content) =
+    go :: MarkupM b -> Builder
+    go (Parent _ open close content) =
+        B.fromText (getText open)
+            `mappend` B.singleton '>'
+            `mappend` go content
+            `mappend` B.fromText (getText close)
+    go (CustomParent tag content) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` B.singleton '>'
+            `mappend` go content
+            `mappend` B.fromText "</"
+            `mappend` fromChoiceString d tag
+            `mappend` B.singleton '>'
+    go (Leaf _ begin end) =
+        B.fromText (getText begin)
+            `mappend` B.fromText (getText end)
+    go (CustomLeaf tag close) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` (if close then B.fromText " />" else B.singleton '>')
+    go (AddAttribute _ key value h) =
+        go_attrs (B.fromText (getText key)
+                 `mappend` fromChoiceString d value
+                 `mappend` B.singleton '"') h
+    go (AddCustomAttribute key value h) =
+        go_attrs (B.singleton ' '
+                 `mappend` fromChoiceString d key
+                 `mappend` B.fromText "=\""
+                 `mappend` fromChoiceString d value
+                 `mappend` B.singleton '"') h
+    go (AddStyle _ key value h) =
+        go_css mempty
+            (Just $ B.fromText (getText key)
+                `mappend` fromChoiceString d value
+                `mappend` B.fromText (getText ";\""))
+            Nothing h
+    go (AddCustomStyle key value h) =
+        go_css mempty
+            (Just $ fromChoiceString d key
+               `mappend` B.fromText (getText ": ")
+               `mappend` fromChoiceString d value
+               `mappend` B.fromText (getText ";\""))
+            Nothing h
+    go (AddClass key h) =
+        go_css mempty Nothing
+            (Just $ fromChoiceString d key
+                `mappend` B.singleton '"')
+            h
+    go (Content content)  = fromChoiceString d content
+    go (Comment comment)  =
+        B.fromText "<!-- "
+            `mappend` fromChoiceString d comment
+            `mappend` " -->"
+    go (Append h1 h2) = go h1 `mappend` go h2
+    go Empty              = mempty
+    {-# NOINLINE go #-}
+
+    go_attrs :: Builder -> MarkupM b -> Builder
+    go_attrs attrs (Parent _ open close content) =
         B.fromText (getText open)
             `mappend` attrs
             `mappend` B.singleton '>'
-            `mappend` go mempty content
+            `mappend` go content
             `mappend` B.fromText (getText close)
-    go attrs (CustomParent tag content) =
+    go_attrs attrs (CustomParent tag content) =
         B.singleton '<'
             `mappend` fromChoiceString d tag
             `mappend` attrs
             `mappend` B.singleton '>'
-            `mappend` go mempty content
+            `mappend` go content
             `mappend` B.fromText "</"
             `mappend` fromChoiceString d tag
             `mappend` B.singleton '>'
-    go attrs (Leaf _ begin end) =
+    go_attrs attrs (Leaf _ begin end) =
         B.fromText (getText begin)
             `mappend` attrs
             `mappend` B.fromText (getText end)
-    go attrs (CustomLeaf tag close) =
+    go_attrs attrs (CustomLeaf tag close) =
         B.singleton '<'
             `mappend` fromChoiceString d tag
             `mappend` attrs
             `mappend` (if close then B.fromText " />" else B.singleton '>')
-    go attrs (AddAttribute _ key value h) =
-        go (B.fromText (getText key)
+    go_attrs attrs (AddAttribute _ key value h) =
+        go_attrs
+            (B.fromText (getText key)
+                `mappend` fromChoiceString d value
+                `mappend` B.singleton '"'
+                `mappend` attrs) h
+    go_attrs attrs (AddCustomAttribute key value h) =
+        go_attrs
+            (B.singleton ' '
+                `mappend` fromChoiceString d key
+                `mappend` B.fromText "=\""
+                `mappend` fromChoiceString d value
+                `mappend` B.singleton '"'
+                `mappend` attrs) h
+    go_attrs attrs (AddStyle _ key value h) =
+        go_css
+            attrs
+            (Just $ B.fromText (getText key)
+                `mappend` fromChoiceString d value
+                `mappend` B.fromText (getText ";\""))
+            Nothing h
+    go_attrs attrs (AddCustomStyle key value h) =
+        go_css attrs
+            (Just $ fromChoiceString d key
+               `mappend` B.fromText (getText ": ")
+               `mappend` fromChoiceString d value
+               `mappend` B.fromText (getText ";\""))
+            Nothing h
+    go_attrs attrs (AddClass key h) =
+        go_css attrs Nothing
+            (Just $ fromChoiceString d key
+                `mappend` B.singleton '"')
+            h
+    go_attrs _ (Content content)  = fromChoiceString d content
+    go_attrs _ (Comment comment)  =
+        B.fromText "<!-- "
+            `mappend` fromChoiceString d comment
+            `mappend` " -->"
+    go_attrs attrs (Append h1 h2) = go_attrs attrs h1 `mappend` go_attrs attrs h2
+    go_attrs _ Empty              = mempty
+    {-# NOINLINE go_attrs #-}
+
+    go_css :: Builder -> Maybe Builder -> Maybe Builder -> MarkupM b -> Builder
+    go_css attrs styles classes (Parent _ open close content) =
+        B.fromText (getText open)
+            `mappend` attrs
+            `mappend` mk_style styles
+            `mappend` mk_class classes
+            `mappend` B.singleton '>'
+            `mappend` go content
+            `mappend` B.fromText (getText close)
+    go_css attrs styles classes (CustomParent tag content) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` attrs
+            `mappend` mk_style styles
+            `mappend` mk_class classes
+            `mappend` B.singleton '>'
+            `mappend` go content
+            `mappend` B.fromText "</"
+            `mappend` fromChoiceString d tag
+            `mappend` B.singleton '>'
+    go_css attrs styles classes (Leaf _ begin end) =
+        B.fromText (getText begin)
+            `mappend` attrs
+            `mappend` mk_style styles
+            `mappend` mk_class classes
+            `mappend` B.fromText (getText end)
+    go_css attrs styles classes (CustomLeaf tag close) =
+        B.singleton '<'
+            `mappend` fromChoiceString d tag
+            `mappend` attrs
+            `mappend` mk_style styles
+            `mappend` mk_class classes
+            `mappend` (if close then B.fromText " />" else B.singleton '>')
+    go_css attrs styles classes (AddAttribute _ key value h) =
+        go_css (B.fromText (getText key)
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
-            `mappend` attrs) h
-    go attrs (AddCustomAttribute key value h) =
-        go (B.singleton ' '
+            `mappend` attrs) styles classes h
+    go_css attrs styles classes (AddCustomAttribute key value h) =
+        go_css (B.singleton ' '
             `mappend` fromChoiceString d key
             `mappend` B.fromText "=\""
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
-            `mappend` attrs) h
-    go _ (Content content)  = fromChoiceString d content
-    go _ (Comment comment)  =
+            `mappend` attrs) styles classes h
+    go_css attrs Nothing classes (AddStyle _ key value h) =
+        go_css attrs
+           (Just $ B.fromText (getText key)
+                   `mappend` fromChoiceString d value
+                   `mappend` B.fromText (getText ";\""))
+           classes
+           h
+    go_css attrs (Just styles) classes (AddStyle _ key value h) =
+        go_css attrs
+           (Just $ B.fromText (getText key)
+                   `mappend` fromChoiceString d value
+                   `mappend` B.fromText (getText "; ")
+                   `mappend` styles)
+           classes
+           h
+    go_css attrs Nothing classes (AddCustomStyle key value h) =
+        go_css attrs
+           (Just $ fromChoiceString d key
+                   `mappend` B.fromText (getText ": ")
+                   `mappend` fromChoiceString d value
+                   `mappend` B.fromText (getText ";\""))
+           classes
+           h
+    go_css attrs (Just styles) classes (AddCustomStyle key value h) =
+        go_css attrs
+           (Just $ fromChoiceString d key
+                   `mappend` B.fromText (getText ": ")
+                   `mappend` fromChoiceString d value
+                   `mappend` B.fromText (getText "; ")
+                   `mappend` styles)
+           classes
+           h
+    go_css attrs styles Nothing (AddClass key h) =
+        go_css attrs
+           styles
+           (Just $ fromChoiceString d key
+                   `mappend` B.singleton '"')
+           h
+    go_css attrs styles (Just classes) (AddClass key h) =
+        go_css attrs
+           styles
+           (Just $ fromChoiceString d key
+                   `mappend` B.singleton ' '
+                   `mappend` classes)
+           h
+    go_css _ _ _ (Content content)  = fromChoiceString d content
+    go_css _ _ _ (Comment comment)  =
         B.fromText "<!-- "
             `mappend` fromChoiceString d comment
             `mappend` " -->"
-    go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
-    go _ Empty              = mempty
-    {-# NOINLINE go #-}
+    go_css attrs styles classes (Append h1 h2) = go_css attrs styles classes h1 `mappend` go_css attrs styles classes h2
+    go_css _ _ _ Empty              = mempty
+    {-# NOINLINE go_css #-}
+
+    mk_style Nothing = mempty
+    mk_style (Just styles) = B.fromText (getText " style=\"") `mappend` styles 
+    mk_class Nothing = mempty
+    mk_class (Just classes) = B.fromText (getText " class=\"") `mappend` classes 
 {-# INLINE renderMarkupBuilderWith #-}
 
 renderHtmlBuilderWith :: (ByteString -> Text)  -- ^ Decoder for bytestrings

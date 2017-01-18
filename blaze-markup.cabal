@@ -43,7 +43,7 @@ Test-suite blaze-markup-tests
   Type:           exitcode-stdio-1.0
   Hs-source-dirs: src tests
   Main-is:        TestSuite.hs
-  Ghc-options:    -Wall
+  Ghc-options:    -Wall -fsimpl-tick-factor=175
 
   Other-modules:
     Text.Blaze.Tests

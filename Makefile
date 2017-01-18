@@ -27,7 +27,8 @@ test-hpc:
 ################################################################################
 
 benchmark:
-	$(GHC) $(GHC_FLAGS) --make -main-is RunHtmlBenchmarks benchmarks/RunHtmlBenchmarks.hs
+	# the -fsimpl-tick-factor=115 eliminates a GHC error (sent bug report to GHC HQ)
+	$(GHC) $(GHC_FLAGS) --make -main-is RunHtmlBenchmarks -fsimpl-tick-factor=115 benchmarks/RunHtmlBenchmarks.hs
 	./benchmarks/RunHtmlBenchmarks $(BENCHMARK_FLAGS) -o report.html
 
 benchmark-bigtable-non-haskell:

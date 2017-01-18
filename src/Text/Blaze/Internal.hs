@@ -25,6 +25,9 @@ module Text.Blaze.Internal
     , attribute
     , dataAttribute
     , customAttribute
+    , cssStyle
+    , customCssStyle
+    , cssClass
 
       -- * Converting values to Markup.
     , text
@@ -163,9 +166,16 @@ data MarkupM a
     | AddAttribute StaticString StaticString ChoiceString (MarkupM a)
     -- | Add a custom attribute to the inner HTML.
     | AddCustomAttribute ChoiceString ChoiceString (MarkupM a)
+    -- | Add a style.
+    | AddStyle StaticString StaticString ChoiceString (MarkupM a)
+    -- | Add a custom style
+    | AddCustomStyle ChoiceString ChoiceString (MarkupM a)
+    -- | Add a class.
+    | AddClass ChoiceString (MarkupM a)
     -- | Empty HTML.
     | Empty
     deriving (Typeable)
+
 
 -- | Simplification of the 'MarkupM' datatype.
 --
@@ -289,6 +299,50 @@ customAttribute tag value = Attribute $ AddCustomAttribute
     (Static $ unTag tag)
     (unAttributeValue value)
 {-# INLINE customAttribute #-}
+
+-- | Create a CSS style that can be applied to an HTML element later using
+-- the '!' operator.
+--
+cssStyle :: Tag             -- ^ Raw key
+         -> Tag             -- ^ Shared key string for the CSS style.
+         -> AttributeValue  -- ^ Value for the CSS style.
+         -> Attribute       -- ^ Resulting CSS style.
+cssStyle rawKey key value = Attribute $
+    AddStyle (unTag rawKey) (unTag key) (unAttributeValue value)
+{-# INLINE cssStyle #-}
+
+-- | Add a CSS style to the style attribute using the attribute syntax.
+--
+-- An example:
+--
+-- > <h1 style="font-weight: bold;">Bold</h1>
+--
+-- Can be produced using:
+--
+-- > h1 ! customCssStyle "font-weight" "bold" $ "Bold"
+--
+customCssStyle :: Tag             -- ^ style name
+               -> AttributeValue  -- ^ style value
+               -> Attribute       -- ^ Resulting CSS style
+customCssStyle tag value = Attribute $ AddCustomStyle
+    (Static $ unTag tag)
+    (unAttributeValue value)
+{-# INLINE customCssStyle #-}
+
+-- | Add a CSS class name to the class attribute using the attribute syntax.
+--
+-- Example:
+--
+-- > <a href="#top" class="hover-invert">Top</a>
+--
+-- Can be produced using:
+--
+-- > a ! cssClass "hover-invert" ! href "#top" $ "Top"
+--
+cssClass :: Tag             -- ^ class name
+         -> Attribute       -- ^ Resulting HTML attribute.
+cssClass tag = Attribute $ AddClass (Static $ unTag tag)
+{-# INLINE cssClass #-}
 
 -- | Render text. Functions like these can be used to supply content in HTML.
 --
@@ -512,6 +566,9 @@ instance Attributable (MarkupM a -> MarkupM b) where
     h ! f = (! f) . h
     {-# INLINE (!) #-}
 
+instance Attributable Attribute where
+    (Attribute h) ! f = Attribute $ (! f) . h
+
 -- | Shorthand for setting an attribute depending on a conditional.
 --
 -- Example:
@@ -576,6 +633,9 @@ null markup = case markup of
     Append c1 c2             -> null c1 && null c2
     AddAttribute _ _ _ c     -> null c
     AddCustomAttribute _ _ c -> null c
+    AddStyle _ _ _ c         -> null c
+    AddCustomStyle _ _ c     -> null c
+    AddClass _ c             -> null c
     Empty                    -> True
   where
     emptyChoiceString cs = case cs of
@@ -589,3 +649,4 @@ null markup = case markup of
         EmptyChoiceString        -> True
 
     emptyStaticString = B.null . getUtf8ByteString
+
