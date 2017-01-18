@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving, Rank2Types,
              FlexibleInstances, ExistentialQuantification,
-             DeriveDataTypeable, CPP #-}
+             DeriveDataTypeable, GADTs, CPP #-}
 -- | The BlazeMarkup core, consisting of functions that offer the power to
 -- generate custom markup elements. It also offers user-centric functions,
 -- which are exposed through 'Text.Blaze'.
@@ -77,7 +77,6 @@ module Text.Blaze.Internal
 import Prelude hiding (null)
 import Control.Applicative (Applicative (..))
 import Data.Monoid (Monoid, mappend, mempty, mconcat)
-import Unsafe.Coerce (unsafeCoerce)
 import qualified Data.List as List
 
 import Data.ByteString.Char8 (ByteString)
@@ -142,68 +141,81 @@ instance IsString ChoiceString where
 
 -- | The core Markup datatype.
 --
-data MarkupM a
+data MarkupM a where
     -- | Tag, open tag, end tag, content
-    = forall b. Parent StaticString StaticString StaticString (MarkupM b)
+    Parent :: StaticString -> StaticString -> StaticString -> MarkupM a -> MarkupM a
     -- | Custom parent
-    | forall b. CustomParent ChoiceString (MarkupM b)
+    CustomParent :: ChoiceString -> MarkupM a -> MarkupM a
     -- | Tag, open tag, end tag
-    | Leaf StaticString StaticString StaticString
+    Leaf :: StaticString -> StaticString -> StaticString -> MarkupM ()
     -- | Custom leaf
-    | CustomLeaf ChoiceString Bool
-    -- | HTML content
-    | Content ChoiceString
+    CustomLeaf :: ChoiceString -> Bool -> MarkupM ()
+    -- | HTML content.  Has universal type to allow generic IsString instance to work.
+    Content :: ChoiceString -> MarkupM a
     -- | HTML comment. Note: you should wrap the 'ChoiceString' in a
     -- 'PreEscaped'.
-    | Comment ChoiceString
+    Comment :: ChoiceString -> MarkupM ()
     -- | Concatenation of two HTML pieces
-    | forall b c. Append (MarkupM b) (MarkupM c)
+    Append :: MarkupM b -> MarkupM a -> MarkupM a
     -- | Add an attribute to the inner HTML. Raw key, key, value, HTML to
     -- receive the attribute.
-    | AddAttribute StaticString StaticString ChoiceString (MarkupM a)
+    AddAttribute :: StaticString -> StaticString -> ChoiceString -> MarkupM a -> MarkupM a
     -- | Add a custom attribute to the inner HTML.
-    | AddCustomAttribute ChoiceString ChoiceString (MarkupM a)
+    AddCustomAttribute :: ChoiceString -> ChoiceString -> MarkupM a -> MarkupM a
     -- | Empty HTML.
-    | Empty
+    Empty :: !a -> MarkupM a
     deriving (Typeable)
 
 -- | Simplification of the 'MarkupM' datatype.
 --
 type Markup = MarkupM ()
 
-instance Monoid (MarkupM a) where
-    mempty = Empty
+markupValue :: MarkupM a -> a
+markupValue (Parent _ _ _ x) = markupValue x
+markupValue (CustomParent _ x) = markupValue x
+markupValue Leaf{} = ()
+markupValue CustomLeaf{} = ()
+markupValue Content{} = error "Text.Blaze.Internal.MarkupM: invalid use of monadic bind from string literal"
+markupValue Comment{} = ()
+markupValue (Append _ x) = markupValue x
+markupValue (AddAttribute _ _ _ x) = markupValue x
+markupValue (AddCustomAttribute _ _ x) = markupValue x
+markupValue (Empty a) = a
+
+instance Monoid a => Monoid (MarkupM a) where
+    mempty = Empty mempty
     {-# INLINE mempty #-}
     mappend x y = Append x y
     {-# INLINE mappend #-}
-    mconcat = foldr Append Empty
+    mconcat = foldr Append (Empty mempty)
     {-# INLINE mconcat #-}
 
 #if MIN_VERSION_base(4,9,0)
-instance Semigroup (MarkupM a) where
+instance Monoid a => Semigroup (MarkupM a) where
 #endif
 
 instance Functor MarkupM where
-    -- Safe because it does not contain a value anyway
-    fmap _ = unsafeCoerce
+    fmap f (Empty x) = Empty $ f x
+    fmap f x = Append x $ Empty $ f $ markupValue x
 
 instance Applicative MarkupM where
-    pure _ = Empty
+    pure = Empty
     {-# INLINE pure #-}
-    (<*>) = Append
+    f <*> Empty v = Append f $ Empty $ markupValue f v
+    f <*> v = Append (Append f v) $ Empty $ markupValue f $ markupValue v
     {-# INLINE (<*>) #-}
     (*>) = Append
     {-# INLINE (*>) #-}
-    (<*) = Append
+    f <* Empty _ = f
+    f <* v = Append (Append f v) $ Empty (markupValue f)
     {-# INLINE (<*) #-}
 
 instance Monad MarkupM where
-    return _ = Empty
+    return = Empty
     {-# INLINE return #-}
     (>>) = Append
     {-# INLINE (>>) #-}
-    h1 >>= f = h1 >> f
-        (error "Text.Blaze.Internal.MarkupM: invalid use of monadic bind")
+    h1 >>= f = h1 >> f (markupValue h1)
     {-# INLINE (>>=) #-}
 
 instance IsString (MarkupM a) where
@@ -554,14 +566,17 @@ external x = x
 --
 -- > Hello World!
 --
-contents :: MarkupM a -> MarkupM b
+contents :: MarkupM a -> MarkupM a
 contents (Parent _ _ _ c)           = contents c
 contents (CustomParent _ c)         = contents c
 contents (Content c)                = Content c
 contents (Append c1 c2)             = Append (contents c1) (contents c2)
 contents (AddAttribute _ _ _ c)     = contents c
 contents (AddCustomAttribute _ _ c) = contents c
-contents _                          = Empty
+contents Leaf{}                     = Empty ()
+contents CustomLeaf{}               = Empty ()
+contents Comment{}                  = Empty ()
+contents (Empty a)                  = Empty a
 
 -- | Check if a 'Markup' value is completely empty (renders to the empty
 -- string).
@@ -576,7 +591,7 @@ null markup = case markup of
     Append c1 c2             -> null c1 && null c2
     AddAttribute _ _ _ c     -> null c
     AddCustomAttribute _ _ c -> null c
-    Empty                    -> True
+    Empty _                  -> True
   where
     emptyChoiceString cs = case cs of
         Static ss                -> emptyStaticString ss

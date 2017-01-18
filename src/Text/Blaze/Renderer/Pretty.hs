@@ -1,5 +1,6 @@
 -- | A renderer that produces pretty HTML, mostly meant for debugging purposes.
 --
+{-# LANGUAGE GADTs #-}
 module Text.Blaze.Renderer.Pretty
     ( renderMarkup
     , renderHtml
@@ -37,7 +38,7 @@ renderString = go 0 id
     go i _ (Comment comment) = ind i .
         ("<!-- " ++) . fromChoiceString comment . (" -->\n" ++)
     go i attrs (Append h1 h2) = go i attrs h1 . go i attrs h2
-    go _ _ Empty = id
+    go _ _ (Empty _) = id
     {-# NOINLINE go #-}
 
     -- Increase the indentation

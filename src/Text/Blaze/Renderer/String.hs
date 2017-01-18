@@ -1,7 +1,7 @@
 -- | A renderer that produces a native Haskell 'String', mostly meant for
 -- debugging purposes.
 --
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, GADTs #-}
 module Text.Blaze.Renderer.String
     ( fromChoiceString
     , renderMarkup
@@ -80,7 +80,7 @@ renderString = go id
     go _ (Comment comment) =
         ("<!-- " ++) . fromChoiceString comment . (" -->" ++)
     go attrs (Append h1 h2) = go attrs h1 . go attrs h2
-    go _ Empty = id
+    go _ (Empty _) = id
     {-# NOINLINE go #-}
 {-# INLINE renderString #-}
 
