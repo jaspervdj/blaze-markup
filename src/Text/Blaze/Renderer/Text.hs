@@ -99,11 +99,11 @@ renderMarkupBuilderWith d = go mempty
             `mappend` B.fromText "</"
             `mappend` fromChoiceString d tag
             `mappend` B.singleton '>'
-    go attrs (Leaf _ begin end) =
+    go attrs (Leaf _ begin end _) =
         B.fromText (getText begin)
             `mappend` attrs
             `mappend` B.fromText (getText end)
-    go attrs (CustomLeaf tag close) =
+    go attrs (CustomLeaf tag close _) =
         B.singleton '<'
             `mappend` fromChoiceString d tag
             `mappend` attrs
@@ -120,13 +120,13 @@ renderMarkupBuilderWith d = go mempty
             `mappend` fromChoiceString d value
             `mappend` B.singleton '"'
             `mappend` attrs) h
-    go _ (Content content)  = fromChoiceString d content
-    go _ (Comment comment)  =
+    go _ (Content content _) = fromChoiceString d content
+    go _ (Comment comment _) =
         B.fromText "<!-- "
             `mappend` fromChoiceString d comment
             `mappend` " -->"
     go attrs (Append h1 h2) = go attrs h1 `mappend` go attrs h2
-    go _ Empty              = mempty
+    go _ (Empty _) = mempty
     {-# NOINLINE go #-}
 {-# INLINE renderMarkupBuilderWith #-}
 

@@ -67,8 +67,8 @@ renderString = go id
     go attrs (CustomParent tag content) =
         ('<' :) . fromChoiceString tag . attrs . ('>' :) .  go id content .
         ("</" ++) . fromChoiceString tag . ('>' :)
-    go attrs (Leaf _ begin end) = getString begin . attrs . getString end
-    go attrs (CustomLeaf tag close) =
+    go attrs (Leaf _ begin end _) = getString begin . attrs . getString end
+    go attrs (CustomLeaf tag close _) =
         ('<' :) . fromChoiceString tag . attrs .
         (if close then (" />" ++) else ('>' :))
     go attrs (AddAttribute _ key value h) = flip go h $
@@ -76,11 +76,11 @@ renderString = go id
     go attrs (AddCustomAttribute key value h) = flip go h $
         (' ' :) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
         ('"' :) .  attrs
-    go _ (Content content) = fromChoiceString content
-    go _ (Comment comment) =
+    go _ (Content content _) = fromChoiceString content
+    go _ (Comment comment _) =
         ("<!-- " ++) . fromChoiceString comment . (" -->" ++)
     go attrs (Append h1 h2) = go attrs h1 . go attrs h2
-    go _ Empty = id
+    go _ (Empty _) = id
     {-# NOINLINE go #-}
 {-# INLINE renderString #-}
 
