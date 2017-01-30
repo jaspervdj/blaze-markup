@@ -175,12 +175,12 @@ data MarkupM a
 --
 type Markup = MarkupM ()
 
-instance Monoid (MarkupM ()) where
-    mempty = Empty ()
+instance Monoid a => Monoid (MarkupM a) where
+    mempty = Empty mempty
     {-# INLINE mempty #-}
     mappend x y = Append x y
     {-# INLINE mappend #-}
-    mconcat = foldr Append (Empty ())
+    mconcat = foldr Append (Empty mempty)
     {-# INLINE mconcat #-}
 
 #if MIN_VERSION_base(4,9,0)
