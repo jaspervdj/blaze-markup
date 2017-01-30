@@ -23,9 +23,9 @@ renderString = go 0 id
         ind i . ('<' :) . fromChoiceString tag . attrs . (">\n" ++) .
         go (inc i) id content . ind i . ("</" ++) . fromChoiceString tag .
         (">\n" ++)
-    go i attrs (Leaf _ begin end) =
+    go i attrs (Leaf _ begin end _) =
         ind i . getString begin . attrs . getString end . ('\n' :)
-    go i attrs (CustomLeaf tag close) =
+    go i attrs (CustomLeaf tag close _) =
         ind i . ('<' :) . fromChoiceString tag . attrs .
         ((if close then " />\n" else ">\n") ++)
     go i attrs (AddAttribute _ key value h) = flip (go i) h $
@@ -33,11 +33,11 @@ renderString = go 0 id
     go i attrs (AddCustomAttribute key value h) = flip (go i) h $
         (' ' : ) . fromChoiceString key . ("=\"" ++) . fromChoiceString value .
         ('"' :) .  attrs
-    go i _ (Content content) = ind i . fromChoiceString content . ('\n' :)
-    go i _ (Comment comment) = ind i .
+    go i _ (Content content _) = ind i . fromChoiceString content . ('\n' :)
+    go i _ (Comment comment _) = ind i .
         ("<!-- " ++) . fromChoiceString comment . (" -->\n" ++)
     go i attrs (Append h1 h2) = go i attrs h1 . go i attrs h2
-    go _ _ Empty = id
+    go _ _ (Empty _) = id
     {-# NOINLINE go #-}
 
     -- Increase the indentation

@@ -50,13 +50,13 @@ table :: Markup   -- ^ Inner HTML.
 table = Parent "table" "<table" "</table>"
 
 img :: Markup   -- ^ Resulting HTML.
-img = Leaf "img" "<img" ">"
+img = Leaf "img" "<img" ">" ()
 
 br :: Markup   -- ^ Resulting HTML.
-br = Leaf "br" "<br" ">"
+br = Leaf "br" "<br" ">" ()
 
 area :: Markup   -- ^ Resulting HTML.
-area = Leaf "area" "<area" ">"
+area = Leaf "area" "<area" ">" ()
 
 class_ :: AttributeValue  -- ^ Attribute value.
        -> Attribute       -- ^ Resulting attribute.

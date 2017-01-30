@@ -98,7 +98,7 @@ table = Parent "table" "<table" "</table>"
 {-# INLINE table #-}
 
 img :: Html  -- ^ Resulting HTML.
-img = Leaf "img" "<img" ">"
+img = Leaf "img" "<img" ">" ()
 {-# INLINE img #-}
 
 id :: AttributeValue  -- ^ Attribute value.

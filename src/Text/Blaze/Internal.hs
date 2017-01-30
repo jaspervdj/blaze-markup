@@ -1,6 +1,11 @@
-{-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving, Rank2Types,
-             FlexibleInstances, ExistentialQuantification,
-             DeriveDataTypeable, CPP #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE Rank2Types                 #-}
 -- | The BlazeMarkup core, consisting of functions that offer the power to
 -- generate custom markup elements. It also offers user-centric functions,
 -- which are exposed through 'Text.Blaze'.
@@ -74,25 +79,24 @@ module Text.Blaze.Internal
     , null
     ) where
 
-import Prelude hiding (null)
-import Control.Applicative (Applicative (..))
-import Data.Monoid (Monoid, mappend, mempty, mconcat)
-import Unsafe.Coerce (unsafeCoerce)
-import qualified Data.List as List
+import           Control.Applicative    (Applicative (..))
+import qualified Data.List              as List
+import           Data.Monoid            (Monoid, mappend, mconcat, mempty)
+import           Prelude                hiding (null)
 
-import Data.ByteString.Char8 (ByteString)
-import Data.Text (Text)
-import Data.Typeable (Typeable)
-import GHC.Exts (IsString (..))
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.Lazy as LT
+import qualified Data.ByteString        as B
+import           Data.ByteString.Char8  (ByteString)
+import qualified Data.ByteString.Lazy   as BL
+import           Data.Text              (Text)
+import qualified Data.Text              as T
+import qualified Data.Text.Encoding     as T
+import qualified Data.Text.Lazy         as LT
 import qualified Data.Text.Lazy.Builder as LTB
+import           Data.Typeable          (Typeable)
+import           GHC.Exts               (IsString (..))
 
 #if MIN_VERSION_base(4,9,0)
-import Data.Semigroup (Semigroup)
+import           Data.Semigroup         (Semigroup)
 #endif
 
 -- | A static string that supports efficient output to all possible backends.
@@ -144,39 +148,39 @@ instance IsString ChoiceString where
 --
 data MarkupM a
     -- | Tag, open tag, end tag, content
-    = forall b. Parent StaticString StaticString StaticString (MarkupM b)
+    = Parent StaticString StaticString StaticString (MarkupM a)
     -- | Custom parent
-    | forall b. CustomParent ChoiceString (MarkupM b)
+    | CustomParent ChoiceString (MarkupM a)
     -- | Tag, open tag, end tag
-    | Leaf StaticString StaticString StaticString
+    | Leaf StaticString StaticString StaticString a
     -- | Custom leaf
-    | CustomLeaf ChoiceString Bool
+    | CustomLeaf ChoiceString Bool a
     -- | HTML content
-    | Content ChoiceString
+    | Content ChoiceString a
     -- | HTML comment. Note: you should wrap the 'ChoiceString' in a
     -- 'PreEscaped'.
-    | Comment ChoiceString
+    | Comment ChoiceString a
     -- | Concatenation of two HTML pieces
-    | forall b c. Append (MarkupM b) (MarkupM c)
+    | forall b. Append (MarkupM b) (MarkupM a)
     -- | Add an attribute to the inner HTML. Raw key, key, value, HTML to
     -- receive the attribute.
     | AddAttribute StaticString StaticString ChoiceString (MarkupM a)
     -- | Add a custom attribute to the inner HTML.
     | AddCustomAttribute ChoiceString ChoiceString (MarkupM a)
     -- | Empty HTML.
-    | Empty
+    | Empty a
     deriving (Typeable)
 
 -- | Simplification of the 'MarkupM' datatype.
 --
 type Markup = MarkupM ()
 
-instance Monoid (MarkupM a) where
-    mempty = Empty
+instance Monoid (MarkupM ()) where
+    mempty = Empty ()
     {-# INLINE mempty #-}
     mappend x y = Append x y
     {-# INLINE mappend #-}
-    mconcat = foldr Append Empty
+    mconcat = foldr Append (Empty ())
     {-# INLINE mconcat #-}
 
 #if MIN_VERSION_base(4,9,0)
@@ -184,31 +188,49 @@ instance Semigroup (MarkupM a) where
 #endif
 
 instance Functor MarkupM where
-    -- Safe because it does not contain a value anyway
-    fmap _ = unsafeCoerce
+    fmap f x =
+        -- Instead of traversing through all the nodes, we just store an extra
+        -- 'Empty' node with the new result.
+        Append x (Empty (f (markupValue x)))
 
 instance Applicative MarkupM where
-    pure _ = Empty
+    pure x = Empty x
     {-# INLINE pure #-}
-    (<*>) = Append
+    (<*>) x y =
+        -- We need to add an extra 'Empty' node to store the result.
+        Append (Append x y) (Empty (markupValue x (markupValue y)))
     {-# INLINE (<*>) #-}
     (*>) = Append
     {-# INLINE (*>) #-}
-    (<*) = Append
-    {-# INLINE (<*) #-}
+    -- (<*) = Append
+    -- {-# INLINE (<*) #-}
 
 instance Monad MarkupM where
-    return _ = Empty
+    return x = Empty x
     {-# INLINE return #-}
     (>>) = Append
     {-# INLINE (>>) #-}
-    h1 >>= f = h1 >> f
-        (error "Text.Blaze.Internal.MarkupM: invalid use of monadic bind")
+    h1 >>= f = Append h1 (f (markupValue h1))
     {-# INLINE (>>=) #-}
 
-instance IsString (MarkupM a) where
-    fromString = Content . fromString
+instance (a ~ ()) => IsString (MarkupM a) where
+    fromString x = Content (fromString x) mempty
     {-# INLINE fromString #-}
+
+-- | Get the value from a 'MarkupM'.
+--
+markupValue :: MarkupM a -> a
+markupValue m0 = case m0 of
+    Parent _ _ _ m1           -> markupValue m1
+    CustomParent _ m1         -> markupValue m1
+    Leaf _ _ _ x              -> x
+    CustomLeaf _ _ x          -> x
+    Content _ x               -> x
+    Comment _ x               -> x
+    Append _ m1               -> markupValue m1
+    AddAttribute _ _ _ m1     -> markupValue m1
+    AddCustomAttribute _ _ m1 -> markupValue m1
+    Empty x                   -> x
 
 -- | Type for an HTML tag. This can be seen as an internal string type used by
 -- BlazeMarkup.
@@ -233,13 +255,13 @@ newtype AttributeValue = AttributeValue { unAttributeValue :: ChoiceString }
 customParent :: Tag     -- ^ Element tag
              -> Markup  -- ^ Content
              -> Markup  -- ^ Resulting markup
-customParent tag = CustomParent (Static $ unTag tag)
+customParent tag cont = CustomParent (Static $ unTag tag) cont
 
 -- | Create a custom leaf element
 customLeaf :: Tag     -- ^ Element tag
            -> Bool    -- ^ Close the leaf?
            -> Markup  -- ^ Resulting markup
-customLeaf tag = CustomLeaf (Static $ unTag tag)
+customLeaf tag close = CustomLeaf (Static $ unTag tag) close ()
 
 -- | Create an HTML attribute that can be applied to an HTML element later using
 -- the '!' operator.
@@ -294,14 +316,14 @@ customAttribute tag value = Attribute $ AddCustomAttribute
 --
 text :: Text    -- ^ Text to render.
      -> Markup  -- ^ Resulting HTML fragment.
-text = Content . Text
+text = content . Text
 {-# INLINE text #-}
 
 -- | Render text without escaping.
 --
 preEscapedText :: Text    -- ^ Text to insert
                -> Markup  -- ^ Resulting HTML fragment
-preEscapedText = Content . PreEscaped . Text
+preEscapedText = content . PreEscaped . Text
 {-# INLINE preEscapedText #-}
 
 -- | A variant of 'text' for lazy 'LT.Text'.
@@ -332,18 +354,22 @@ preEscapedTextBuilder :: LTB.Builder -- ^ Text to insert
 preEscapedTextBuilder = preEscapedLazyText . LTB.toLazyText
 {-# INLINE preEscapedTextBuilder #-}
 
+content :: ChoiceString -> Markup
+content cs = Content cs ()
+{-# INLINE content #-}
+
 -- | Create an HTML snippet from a 'String'.
 --
 string :: String  -- ^ String to insert.
        -> Markup  -- ^ Resulting HTML fragment.
-string = Content . String
+string = content . String
 {-# INLINE string #-}
 
 -- | Create an HTML snippet from a 'String' without escaping
 --
 preEscapedString :: String  -- ^ String to insert.
                  -> Markup  -- ^ Resulting HTML fragment.
-preEscapedString = Content . PreEscaped . String
+preEscapedString = content . PreEscaped . String
 {-# INLINE preEscapedString #-}
 
 -- | Insert a 'ByteString'. This is an unsafe operation:
@@ -355,7 +381,7 @@ preEscapedString = Content . PreEscaped . String
 --
 unsafeByteString :: ByteString  -- ^ Value to insert.
                  -> Markup      -- ^ Resulting HTML fragment.
-unsafeByteString = Content . ByteString
+unsafeByteString = content . ByteString
 {-# INLINE unsafeByteString #-}
 
 -- | Insert a lazy 'BL.ByteString'. See 'unsafeByteString' for reasons why this
@@ -366,36 +392,40 @@ unsafeLazyByteString :: BL.ByteString  -- ^ Value to insert
 unsafeLazyByteString = mconcat . map unsafeByteString . BL.toChunks
 {-# INLINE unsafeLazyByteString #-}
 
+comment :: ChoiceString -> Markup
+comment cs = Comment cs ()
+{-# INLINE comment #-}
+
 -- | Create a comment from a 'Text' value.
 -- The text should not contain @"--"@.
 -- This is not checked by the library.
 textComment :: Text -> Markup
-textComment = Comment . PreEscaped . Text
+textComment = comment . PreEscaped . Text
 
 -- | Create a comment from a 'LT.Text' value.
 -- The text should not contain @"--"@.
 -- This is not checked by the library.
 lazyTextComment :: LT.Text -> Markup
-lazyTextComment = Comment . mconcat . map (PreEscaped . Text) . LT.toChunks
+lazyTextComment = comment . mconcat . map (PreEscaped . Text) . LT.toChunks
 
 -- | Create a comment from a 'String' value.
 -- The text should not contain @"--"@.
 -- This is not checked by the library.
 stringComment :: String -> Markup
-stringComment = Comment . PreEscaped . String
+stringComment = comment . PreEscaped . String
 
 -- | Create a comment from a 'ByteString' value.
 -- The text should not contain @"--"@.
 -- This is not checked by the library.
 unsafeByteStringComment :: ByteString -> Markup
-unsafeByteStringComment = Comment . PreEscaped . ByteString
+unsafeByteStringComment = comment . PreEscaped . ByteString
 
 -- | Create a comment from a 'BL.ByteString' value.
 -- The text should not contain @"--"@.
 -- This is not checked by the library.
 unsafeLazyByteStringComment :: BL.ByteString -> Markup
 unsafeLazyByteStringComment =
-    Comment . mconcat . map (PreEscaped . ByteString) . BL.toChunks
+    comment . mconcat . map (PreEscaped . ByteString) . BL.toChunks
 
 -- | Create a 'Tag' from some 'Text'.
 --
@@ -535,13 +565,13 @@ instance Attributable (MarkupM a -> MarkupM b) where
 -- combinators.
 --
 external :: MarkupM a -> MarkupM a
-external (Content x) = Content $ External x
-external (Append x y) = Append (external x) (external y)
-external (Parent x y z i) = Parent x y z $ external i
-external (CustomParent x i) = CustomParent x $ external i
-external (AddAttribute x y z i) = AddAttribute x y z $ external i
+external (Content x a)              = Content (External x) a
+external (Append x y)               = Append (external x) (external y)
+external (Parent x y z i)           = Parent x y z $ external i
+external (CustomParent x i)         = CustomParent x $ external i
+external (AddAttribute x y z i)     = AddAttribute x y z $ external i
 external (AddCustomAttribute x y i) = AddCustomAttribute x y $ external i
-external x = x
+external x                          = x
 {-# INLINE external #-}
 
 -- | Take only the text content of an HTML tree.
@@ -554,14 +584,14 @@ external x = x
 --
 -- > Hello World!
 --
-contents :: MarkupM a -> MarkupM b
+contents :: MarkupM a -> MarkupM a
 contents (Parent _ _ _ c)           = contents c
 contents (CustomParent _ c)         = contents c
-contents (Content c)                = Content c
+contents (Content c x)              = Content c x
 contents (Append c1 c2)             = Append (contents c1) (contents c2)
 contents (AddAttribute _ _ _ c)     = contents c
 contents (AddCustomAttribute _ _ c) = contents c
-contents _                          = Empty
+contents m                          = Empty (markupValue m)
 
 -- | Check if a 'Markup' value is completely empty (renders to the empty
 -- string).
@@ -569,14 +599,14 @@ null :: MarkupM a -> Bool
 null markup = case markup of
     Parent _ _ _ _           -> False
     CustomParent _ _         -> False
-    Leaf _ _ _               -> False
-    CustomLeaf _ _           -> False
-    Content c                -> emptyChoiceString c
-    Comment c                -> emptyChoiceString c
+    Leaf _ _ _ _             -> False
+    CustomLeaf _ _ _         -> False
+    Content c _              -> emptyChoiceString c
+    Comment c _              -> emptyChoiceString c
     Append c1 c2             -> null c1 && null c2
     AddAttribute _ _ _ c     -> null c
     AddCustomAttribute _ _ c -> null c
-    Empty                    -> True
+    Empty _                  -> True
   where
     emptyChoiceString cs = case cs of
         Static ss                -> emptyStaticString ss
