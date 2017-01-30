@@ -222,7 +222,6 @@ markupValue m0 = case m0 of
     AddAttribute _ _ _ m1     -> markupValue m1
     AddCustomAttribute _ _ m1 -> markupValue m1
     Empty x                   -> x
-{-# INLINE markupValue #-}
 
 -- | Type for an HTML tag. This can be seen as an internal string type used by
 -- BlazeMarkup.
