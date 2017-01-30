@@ -184,7 +184,7 @@ instance Monoid a => Monoid (MarkupM a) where
     {-# INLINE mconcat #-}
 
 #if MIN_VERSION_base(4,9,0)
-instance Semigroup (MarkupM a) where
+instance Monoid a => Semigroup (MarkupM a) where
 #endif
 
 instance Functor MarkupM where
