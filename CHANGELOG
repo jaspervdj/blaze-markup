@@ -1,3 +1,12 @@
+# Changelog
+
+- 0.8.0.0 (2017-01-30)
+    * Make `MarkupM` finally adhere to the Monad laws
+    * Stricten the `IsString` instance to only work with `MarkupM ()` and not
+      `MarkupM a`
+    * Change the type of `contents` to `MarkupM a -> MarkupM a`
+    * Add a `Semigroup` instance for `MarkupM`
+
 - 0.7.1.1
     * Bump `HUnit` dependency to allow 1.5
 
