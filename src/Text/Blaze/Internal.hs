@@ -96,7 +96,7 @@ import           Data.Typeable          (Typeable)
 import           GHC.Exts               (IsString (..))
 
 #if MIN_VERSION_base(4,9,0)
-import           Data.Semigroup         (Semigroup)
+import           Data.Semigroup         (Semigroup(..))
 #endif
 
 -- | A static string that supports efficient output to all possible backends.
@@ -134,11 +134,19 @@ data ChoiceString
     -- | Empty string
     | EmptyChoiceString
 
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup ChoiceString where
+    (<>) = AppendChoiceString
+    {-# INLINE (<>) #-}
+#endif
+
 instance Monoid ChoiceString where
     mempty = EmptyChoiceString
     {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
     mappend = AppendChoiceString
     {-# INLINE mappend #-}
+#endif
 
 instance IsString ChoiceString where
     fromString = String
@@ -178,13 +186,19 @@ type Markup = MarkupM ()
 instance Monoid a => Monoid (MarkupM a) where
     mempty = Empty mempty
     {-# INLINE mempty #-}
+#if !(MIN_VERSION_base(4,11,0))
     mappend x y = Append x y
     {-# INLINE mappend #-}
     mconcat = foldr Append (Empty mempty)
     {-# INLINE mconcat #-}
+#endif
 
 #if MIN_VERSION_base(4,9,0)
 instance Monoid a => Semigroup (MarkupM a) where
+    x <> y = Append x y
+    {-# INLINE (<>) #-}
+    sconcat = foldr Append (Empty mempty)
+    {-# INLINE sconcat #-}
 #endif
 
 instance Functor MarkupM where
@@ -242,14 +256,25 @@ newtype Tag = Tag { unTag :: StaticString }
 --
 newtype Attribute = Attribute (forall a. MarkupM a -> MarkupM a)
 
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup Attribute where
+    Attribute f <> Attribute g = Attribute (g . f)
+#endif
+
 instance Monoid Attribute where
     mempty                            = Attribute id
+#if !(MIN_VERSION_base(4,11,0))
     Attribute f `mappend` Attribute g = Attribute (g . f)
+#endif
 
 -- | The type for the value part of an attribute.
 --
 newtype AttributeValue = AttributeValue { unAttributeValue :: ChoiceString }
-    deriving (IsString, Monoid)
+    deriving (IsString, Monoid
+#if MIN_VERSION_base(4,9,0)
+             ,Semigroup
+#endif
+             )
 
 -- | Create a custom parent element
 customParent :: Tag     -- ^ Element tag
