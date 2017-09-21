@@ -2,11 +2,10 @@
 --
 module Main where
 
-import Test.Framework (defaultMain, testGroup)
+import qualified Test.Tasty as Tasty
 
 import qualified Text.Blaze.Tests
 
 main :: IO ()
-main = defaultMain
-    [ testGroup "Text.Blaze.Tests" Text.Blaze.Tests.tests
-    ]
+main = Tasty.defaultMain $
+    Tasty.testGroup "Text.Blaze.Tests" Text.Blaze.Tests.tests

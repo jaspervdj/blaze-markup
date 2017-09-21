@@ -5,8 +5,8 @@ module Text.Blaze.Tests.Util
     ( renderUsingString
     , renderUsingText
     , renderUsingUtf8
-	, p, div, table, img, br, area
-	, id, class_, name
+    , p, div, table, img, br, area
+    , id, class_, name
     ) where
 
 import Prelude hiding (div, id)
