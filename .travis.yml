@@ -1,3 +1,6 @@
 language: haskell
-before_script:
-  - "cabal install HUnit QuickCheck test-framework test-framework-hunit test-framework-quickcheck2"
+sudo: false
+cache:
+  directories:
+    - '$HOME/.cabal'
+    - '$HOME/.ghc'

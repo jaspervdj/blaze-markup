@@ -14,10 +14,10 @@ import Data.Char (ord, isControl)
 import qualified Data.List as List
 import qualified Prelude as Prelude
 
-import Test.Framework (Test)
+import Test.Tasty (TestTree)
 import Test.HUnit (Assertion, (@=?))
-import Test.Framework.Providers.HUnit (testCase)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.Tasty.HUnit (testCase)
+import Test.Tasty.QuickCheck (testProperty)
 import Test.QuickCheck
 import qualified Data.ByteString as SB
 import qualified Data.ByteString.Lazy as LB
@@ -27,7 +27,7 @@ import Text.Blaze
 import Text.Blaze.Internal
 import Text.Blaze.Tests.Util
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testProperty "left identity Monoid law"  monoidLeftIdentity
         , testProperty "right identity Monoid law" monoidRightIdentity
         , testProperty "associativity Monoid law"  monoidAssociativity
