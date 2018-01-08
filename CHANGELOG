@@ -1,5 +1,9 @@
 # Changelog
 
+- 0.8.1.0 (2017-09-16)
+    * Compatibility with Semigroup/Monoid proposal
+    * Switch to `tasty` for running tests
+
 - 0.8.0.0 (2017-01-30)
     * Make `MarkupM` finally adhere to the Monad laws
     * Stricten the `IsString` instance to only work with `MarkupM ()` and not
