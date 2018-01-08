@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.8.1.1 (2018-01-08)
+    * Define `ToMarkup` instance for `Natural`.
+
 - 0.8.1.0 (2017-09-16)
     * Compatibility with Semigroup/Monoid proposal
     * Switch to `tasty` for running tests

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -87,12 +88,15 @@ module Text.Blaze
     , contents
     ) where
 
-import           Data.Int            (Int32, Int64)
-import           Data.Monoid         (mconcat)
-import           Data.Word           (Word, Word32, Word64)
+import           Data.Int               (Int32, Int64)
+import           Data.Monoid            (mconcat)
+import           Data.Word              (Word, Word32, Word64)
+#if MIN_VERSION_base(4,8,0)
+import           Numeric.Natural        (Natural)
+#endif
 
-import           Data.Text           (Text)
-import qualified Data.Text.Lazy      as LT
+import           Data.Text              (Text)
+import qualified Data.Text.Lazy         as LT
 import qualified Data.Text.Lazy.Builder as LTB
 
 import           Text.Blaze.Internal
@@ -153,6 +157,12 @@ instance ToMarkup Int32 where
 instance ToMarkup Int64 where
     toMarkup = string . show
     {-# INLINE toMarkup #-}
+
+#if MIN_VERSION_base(4,8,0)
+instance ToMarkup Natural where
+    toMarkup = string . show
+    {-# INLINE toMarkup #-}
+#endif
 
 instance ToMarkup Char where
     toMarkup = string . return
