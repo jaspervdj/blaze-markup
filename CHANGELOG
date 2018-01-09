@@ -1,6 +1,6 @@
 # Changelog
 
-- 0.8.1.1 (2018-01-08)
+- 0.8.2.0 (2018-01-09)
     * Define `ToMarkup` instance for `Natural`.
 
 - 0.8.1.0 (2017-09-16)
