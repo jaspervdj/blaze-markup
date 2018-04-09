@@ -1,5 +1,11 @@
 # Changelog
 
+- 0.8.2.1 (2018-04-09)
+    * Bump `QuickCheck` dependency to allow 2.11
+    * Bump `tasty` dependency to allow 1.0
+    * Bump `tasty-hunit` dependency to allow 0.10
+    * Bump `tasty-quickcheck` dependency to allow 0.10
+
 - 0.8.2.0 (2018-01-09)
     * Define `ToMarkup` instance for `Natural`.
 
