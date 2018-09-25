@@ -1,5 +1,10 @@
 # Changelog
 
+- 0.8.2.2 (2018-09-25)
+    * Bump `base` to 4.12
+    * Bump `containers` to 0.6
+    * Bump `tasty` to 1.1
+
 - 0.8.2.1 (2018-04-09)
     * Bump `QuickCheck` dependency to allow 2.11
     * Bump `tasty` dependency to allow 1.0
