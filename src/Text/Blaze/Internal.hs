@@ -8,7 +8,7 @@
 {-# LANGUAGE Rank2Types                 #-}
 -- | The BlazeMarkup core, consisting of functions that offer the power to
 -- generate custom markup elements. It also offers user-centric functions,
--- which are exposed through 'Text.Blaze'.
+-- which are exposed through "Text.Blaze".
 --
 -- While this module is exported, usage of it is not recommended, unless you
 -- know what you are doing. This module might undergo changes at any time.
