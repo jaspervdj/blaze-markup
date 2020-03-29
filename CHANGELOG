@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.8.2.4 (2020-03-29)
+    * Bump `QuickCheck` upper bound to 2.15
+
 - 0.8.2.3 (2019-10-02)
     * Bump `base` to 4.13
     * Bump `tasty` to 1.2
