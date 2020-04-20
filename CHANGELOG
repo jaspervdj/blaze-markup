@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.8.2.5 (2020-04-20)
+    * Bump `base` upper bound to 4.15
+
 - 0.8.2.4 (2020-03-29)
     * Bump `QuickCheck` upper bound to 2.15
 
