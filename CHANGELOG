@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.8.2.7 (2020-06-30)
+    * Bump Cabal version lower bound to 1.10
+
 - 0.8.2.6 (2020-06-30)
     * Bump `tasty` upper bound to 1.4
 
