@@ -16,7 +16,7 @@ Description:
   <http://jaspervdj.be/blaze/tutorial.html>.
 
 Build-type:    Simple
-Cabal-version: >= 1.8
+Cabal-version: >= 1.10
 Tested-with:   GHC == 7.8.4, GHC == 7.10.3,
                GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4,
                GHC == 8.6.5, GHC == 8.8.3, GHC == 8.10.1
@@ -25,8 +25,9 @@ Extra-source-files:
   CHANGELOG
 
 Library
-  Hs-source-dirs: src
-  Ghc-Options:    -Wall
+  Hs-source-dirs:   src
+  Ghc-Options:      -Wall
+  Default-language: Haskell2010
 
   Exposed-modules:
     Text.Blaze
@@ -43,10 +44,11 @@ Library
     bytestring    >= 0.9  && < 0.11
 
 Test-suite blaze-markup-tests
-  Type:           exitcode-stdio-1.0
-  Hs-source-dirs: src tests
-  Main-is:        TestSuite.hs
-  Ghc-options:    -Wall
+  Type:             exitcode-stdio-1.0
+  Hs-source-dirs:   src tests
+  Main-is:          TestSuite.hs
+  Ghc-options:      -Wall
+  Default-language: Haskell2010
 
   Other-modules:
     Text.Blaze
