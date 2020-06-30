@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.8.2.6 (2020-06-30)
+    * Bump `tasty` upper bound to 1.4
+
 - 0.8.2.5 (2020-04-20)
     * Bump `base` upper bound to 4.15
 
