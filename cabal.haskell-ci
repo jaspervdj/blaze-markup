@@ -1,1 +1,2 @@
-installed: +all -text
+branches: master ci*
+-- installed: +all -text
