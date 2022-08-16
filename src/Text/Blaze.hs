@@ -84,7 +84,7 @@ module Text.Blaze
     , (!)
     , (!?)
 
-      -- * Modifiying Markup trees
+      -- * Modifying Markup trees
     , contents
     ) where
 
