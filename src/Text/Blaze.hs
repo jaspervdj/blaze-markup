@@ -94,6 +94,9 @@ import           Data.Word              (Word, Word32, Word64)
 #if MIN_VERSION_base(4,8,0)
 import           Numeric.Natural        (Natural)
 #endif
+#if MIN_VERSION_base(4,9,0)
+import           Data.List.NonEmpty     (NonEmpty (..))
+#endif
 
 import           Data.Text              (Text)
 import qualified Data.Text.Lazy         as LT
@@ -280,3 +283,13 @@ instance ToValue Word32 where
 instance ToValue Word64 where
     toValue = stringValue . show
     {-# INLINE toValue #-}
+
+-- Non-empty strings
+#if MIN_VERSION_base(4,9,0)
+instance ToMarkup (NonEmpty Char) where
+    toMarkup           (x :| xs) = string           (x : xs)
+    preEscapedToMarkup (x :| xs) = preEscapedString (x : xs)
+
+instance ToValue (NonEmpty Char) where
+    toValue (x :| xs) = stringValue (x : xs)
+#endif
