@@ -1,7 +1,9 @@
 # Changelog
 
-- unreleased
+- 0.8.3.0 (2023-09-25)
     * Add `ToMarkup` and `ToValue` instances for `NonEmpty Char`
+    * Bump `bytestring` upper bound to 0.13
+    * Bump `text` upper bound to 2.1
 
 - 0.8.2.8 (2021-03-04)
     * Bump `base` upper bound to 4.16
