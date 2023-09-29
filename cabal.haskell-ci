@@ -1,9 +1,13 @@
-branches: master ci*
+branches: master
 
-constraint-set bytestring-0.12
-  ghc: >=8.2
-  constraints: bytestring ^>=0.12.0.0
+-- Test core libraries in versions newer than shipped with GHC
+constraint-set latest-core-libs-Sep-2023
+  constraints: bytestring >= 0.12
+  constraints: text       >= 2.1
+  constraints: containers >= 0.7
+  ghc: >=8.2 && < 9.7
   tests: True
   run-tests: True
-raw-project
-  allow-newer: bytestring
+
+-- raw-project
+--   allow-newer: bytestring
