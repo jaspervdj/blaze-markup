@@ -1,5 +1,7 @@
+Cabal-version: >= 1.10
 Name:         blaze-markup
 Version:      0.8.3.0
+x-revision:   1
 Homepage:     http://jaspervdj.be/blaze
 Bug-Reports:  http://github.com/jaspervdj/blaze-markup/issues
 License:      BSD3
@@ -16,11 +18,11 @@ Description:
   <http://jaspervdj.be/blaze/tutorial.html>.
 
 Build-type:    Simple
-Cabal-version: >= 1.10
 
 Tested-with:
-  GHC == 9.6.2
-  GHC == 9.4.5
+  GHC == 9.8.0
+  GHC == 9.6.3
+  GHC == 9.4.7
   GHC == 9.2.8
   GHC == 9.0.2
   GHC == 8.10.7
@@ -30,7 +32,6 @@ Tested-with:
   GHC == 8.2.2
   GHC == 8.0.2
   GHC == 7.10.3
-  GHC == 7.8.4
 
 Extra-source-files:
   CHANGELOG
@@ -49,10 +50,10 @@ Library
     Text.Blaze.Renderer.Utf8
 
   Build-depends:
-    base          >= 4    && < 5,
-    blaze-builder >= 0.3  && < 0.5,
-    text          >= 0.10 && < 2.1,
-    bytestring    >= 0.9  && < 0.13
+      base          >= 4    && < 5
+    , blaze-builder >= 0.3  && < 0.5
+    , text          >= 0.10 && < 2.2
+    , bytestring    >= 0.9  && < 0.13
 
 Test-suite blaze-markup-tests
   Type:             exitcode-stdio-1.0
@@ -80,8 +81,8 @@ Test-suite blaze-markup-tests
     -- Extra dependencies
     , HUnit            >= 1.2  && < 1.7
     , QuickCheck       >= 2.7  && < 2.15
-    , containers       >= 0.3  && < 0.7
-    , tasty            >= 1.0  && < 1.5
+    , containers       >= 0.3  && < 0.8
+    , tasty            >= 1.0  && < 1.6
     , tasty-hunit      >= 0.10 && < 0.11
     , tasty-quickcheck >= 0.10 && < 0.11
 
