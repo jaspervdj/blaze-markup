@@ -86,6 +86,23 @@ Test-suite blaze-markup-tests
     , tasty-hunit      >= 0.10 && < 0.11
     , tasty-quickcheck >= 0.10 && < 0.11
 
+Benchmark blaze-html-benchmarks
+  Type:             exitcode-stdio-1.0
+  Hs-source-dirs:   benchmarks
+  Main-is:          RunHtmlBenchmarks.hs
+  Other-modules:
+    BenchmarkUtils
+    HtmlBenchmarks
+  Ghc-options:      -Wall
+  Default-language: Haskell2010
+
+  Build-depends:
+    base,
+    blaze-markup,
+    bytestring,
+    criterion,
+    text
+
 Source-repository head
   Type:     git
   Location: http://github.com/jaspervdj/blaze-markup
