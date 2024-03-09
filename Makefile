@@ -32,5 +32,5 @@ benchmark:
 
 benchmark-bigtable-non-haskell:
 	ruby benchmarks/bigtable/erb.rb
-	ruby benchmarks/bigtable/erubis.rb
+	ruby benchmarks/bigtable/erubi.rb
 	php -n benchmarks/bigtable/php.php
