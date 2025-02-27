@@ -220,9 +220,11 @@ instance Applicative MarkupM where
     -- {-# INLINE (<*) #-}
 
 instance Monad MarkupM where
+#if !MIN_VERSION_base(4,8,0)
     return x = Empty x
     {-# INLINE return #-}
-    (>>) = Append
+#endif
+    (>>) = (*>)
     {-# INLINE (>>) #-}
     h1 >>= f = Append h1 (f (markupValue h1))
     {-# INLINE (>>=) #-}
