@@ -27,10 +27,9 @@ test-hpc:
 ################################################################################
 
 benchmark:
-	$(GHC) $(GHC_FLAGS) --make -main-is RunHtmlBenchmarks benchmarks/RunHtmlBenchmarks.hs
-	./benchmarks/RunHtmlBenchmarks $(BENCHMARK_FLAGS) -o report.html
+	cabal run blaze-markup:benchmarks -- $(BENCHMARK_FLAGS) -o report.html
 
 benchmark-bigtable-non-haskell:
 	ruby benchmarks/bigtable/erb.rb
-	ruby benchmarks/bigtable/erubis.rb
+	ruby benchmarks/bigtable/erubi.rb
 	php -n benchmarks/bigtable/php.php

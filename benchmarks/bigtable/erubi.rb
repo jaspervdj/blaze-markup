@@ -1,11 +1,11 @@
-# BigTable benchmark implemented in erubis
+# BigTable benchmark implemented in erubi
 #
-require 'erubis'
+require 'erubi'
 require 'benchmark'
 
 table = (1 .. 1000).map do |_| (1 .. 10) end
 
-template = Erubis::Eruby.new <<-EOF
+template = Erubi::Engine.new <<-EOF
 <table>
   <% table.each do |row| %>
     <tr>
@@ -22,10 +22,10 @@ EOF
 number_runs = 100
 start_time = Time.now.to_f
 number_runs.times do
-    template.result(binding)
+    eval(template.src)
 end
 end_time = Time.now.to_f
 
 # start_time and end_time are both in seconds now
 ms = (end_time - start_time) * 1000 / number_runs
-puts "\"Erubis\", #{ms}"
+puts "\"Erubi\", #{ms}"
