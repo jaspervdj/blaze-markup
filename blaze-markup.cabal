@@ -20,6 +20,7 @@ Description:
 Build-type:    Simple
 
 Tested-with:
+  GHC == 9.14.1
   GHC == 9.12.2
   GHC == 9.10.2
   GHC == 9.8.4
@@ -82,7 +83,7 @@ Test-suite blaze-markup-tests
     -- Extra dependencies
     , HUnit            >= 1.2  && < 1.7
     , QuickCheck       >= 2.7  && < 3
-    , containers       >= 0.3  && < 0.8
+    , containers       >= 0.3  && < 0.9
     , tasty            >= 1.0  && < 1.6
     , tasty-hunit      >= 0.10 && < 0.11
     , tasty-quickcheck >= 0.10 && < 1
