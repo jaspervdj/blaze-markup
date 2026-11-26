@@ -220,8 +220,6 @@ instance Applicative MarkupM where
     -- {-# INLINE (<*) #-}
 
 instance Monad MarkupM where
-    return x = Empty x
-    {-# INLINE return #-}
     (>>) = Append
     {-# INLINE (>>) #-}
     h1 >>= f = Append h1 (f (markupValue h1))
